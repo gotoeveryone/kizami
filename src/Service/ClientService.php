@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Service;
 
+use App\Domain\Entity\Client;
 use Doctrine\ORM\EntityManagerInterface;
 use Throwable;
 
@@ -16,34 +17,53 @@ final class ClientService
 
     public function listAll(): array
     {
-        return $this->entityManager->getConnection()->fetchAllAssociative(
-            'SELECT id, name, sort_order, created, modified FROM clients ORDER BY sort_order ASC, id ASC'
-        );
+        $clients = $this->entityManager->getRepository(Client::class)
+            ->createQueryBuilder('c')
+            ->orderBy('c.sortOrder', 'ASC')
+            ->addOrderBy('c.id', 'ASC')
+            ->getQuery()
+            ->getResult();
+
+        return array_map(static fn (Client $client): array => [
+            'id' => $client->getId(),
+            'name' => $client->getName(),
+            'sort_order' => $client->getSortOrder(),
+        ], $clients);
     }
 
     public function listForSelect(): array
     {
-        return $this->entityManager->getConnection()->fetchAllAssociative(
-            'SELECT id, name FROM clients ORDER BY sort_order ASC, id ASC'
-        );
+        $clients = $this->entityManager->getRepository(Client::class)
+            ->createQueryBuilder('c')
+            ->select('c')
+            ->orderBy('c.sortOrder', 'ASC')
+            ->addOrderBy('c.id', 'ASC')
+            ->getQuery()
+            ->getResult();
+
+        return array_map(static fn (Client $client): array => [
+            'id' => $client->getId(),
+            'name' => $client->getName(),
+        ], $clients);
     }
 
     public function findById(int $id): ?array
     {
-        $client = $this->entityManager->getConnection()->fetchAssociative(
-            'SELECT id, name, sort_order FROM clients WHERE id = :id',
-            ['id' => $id]
-        );
+        $client = $this->entityManager->find(Client::class, $id);
+        if (!$client instanceof Client) {
+            return null;
+        }
 
-        return $client === false ? null : $client;
+        return [
+            'id' => $client->getId(),
+            'name' => $client->getName(),
+            'sort_order' => $client->getSortOrder(),
+        ];
     }
 
     public function has(int $id): bool
     {
-        return (int) $this->entityManager->getConnection()->fetchOne(
-            'SELECT COUNT(*) FROM clients WHERE id = :id',
-            ['id' => $id]
-        ) > 0;
+        return $this->entityManager->find(Client::class, $id) instanceof Client;
     }
 
     public function normalizeInput(array $data): array
@@ -69,28 +89,36 @@ final class ClientService
 
     public function create(array $client): void
     {
-        $now = date('Y-m-d H:i:s');
-        $this->entityManager->getConnection()->insert('clients', [
-            'name' => $client['name'],
-            'sort_order' => (int) $client['sort_order'],
-            'created' => $now,
-            'modified' => $now,
-        ]);
+        $entity = new Client(
+            (string) $client['name'],
+            (int) $client['sort_order']
+        );
+        $this->entityManager->persist($entity);
+        $this->entityManager->flush();
     }
 
     public function update(int $id, array $client): void
     {
-        $this->entityManager->getConnection()->update('clients', [
-            'name' => $client['name'],
-            'sort_order' => (int) $client['sort_order'],
-            'modified' => date('Y-m-d H:i:s'),
-        ], ['id' => $id]);
+        $entity = $this->entityManager->find(Client::class, $id);
+        if (!$entity instanceof Client) {
+            return;
+        }
+
+        $entity->setName((string) $client['name']);
+        $entity->setSortOrder((int) $client['sort_order']);
+        $this->entityManager->flush();
     }
 
     public function delete(int $id): bool
     {
+        $entity = $this->entityManager->find(Client::class, $id);
+        if (!$entity instanceof Client) {
+            return true;
+        }
+
         try {
-            $this->entityManager->getConnection()->delete('clients', ['id' => $id]);
+            $this->entityManager->remove($entity);
+            $this->entityManager->flush();
         } catch (Throwable) {
             return false;
         }

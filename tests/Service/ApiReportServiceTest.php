@@ -5,8 +5,9 @@ declare(strict_types=1);
 namespace Tests\Service;
 
 use App\Service\ApiReportService;
-use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\Query;
+use Doctrine\ORM\QueryBuilder;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
@@ -15,7 +16,7 @@ final class ApiReportServiceTest extends TestCase
     #[Test]
     public function summarizeHoursByClientShouldPassDateRangeToQuery(): void
     {
-        $expectedRows = [
+        $queryRows = [
             [
                 'client_id' => 1,
                 'client_name' => 'Acme',
@@ -23,25 +24,34 @@ final class ApiReportServiceTest extends TestCase
             ],
         ];
 
-        $connection = $this->createMock(Connection::class);
-        $connection->expects(self::once())
-            ->method('fetchAllAssociative')
-            ->with(
-                self::stringContains('WHERE te.date BETWEEN :date_from AND :date_to'),
-                [
-                    'date_from' => '2026-02-01',
-                    'date_to' => '2026-02-28',
-                ]
-            )
-            ->willReturn($expectedRows);
+        $query = $this->createMock(Query::class);
+        $query->expects(self::once())
+            ->method('getArrayResult')
+            ->willReturn($queryRows);
+
+        $queryBuilder = $this->createMock(QueryBuilder::class);
+        $queryBuilder->method('select')->willReturnSelf();
+        $queryBuilder->method('from')->willReturnSelf();
+        $queryBuilder->method('join')->willReturnSelf();
+        $queryBuilder->method('where')->willReturnSelf();
+        $queryBuilder->method('setParameter')->willReturnSelf();
+        $queryBuilder->method('groupBy')->willReturnSelf();
+        $queryBuilder->method('orderBy')->willReturnSelf();
+        $queryBuilder->method('getQuery')->willReturn($query);
 
         $entityManager = $this->createMock(EntityManagerInterface::class);
-        $entityManager->method('getConnection')->willReturn($connection);
+        $entityManager->method('createQueryBuilder')->willReturn($queryBuilder);
 
         $service = new ApiReportService($entityManager);
 
         $rows = $service->summarizeHoursByClient('2026-02-01', '2026-02-28');
 
-        self::assertSame($expectedRows, $rows);
+        self::assertSame([
+            [
+                'client_id' => 1,
+                'client_name' => 'Acme',
+                'total_hours' => 3.5,
+            ],
+        ], $rows);
     }
 }

@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace App\Service;
 
+use App\Domain\Entity\Client;
+use App\Domain\Entity\TimeEntry;
+use App\Domain\Entity\WorkCategory;
+use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use InvalidArgumentException;
 
@@ -16,69 +20,83 @@ final class TimeEntryService
 
     public function listForPeriod(string $dateFrom, string $dateTo, ?int $clientId = null): array
     {
-        $where = 'te.date BETWEEN :date_from AND :date_to';
-        $params = [
-            'date_from' => $dateFrom,
-            'date_to' => $dateTo,
-        ];
+        $queryBuilder = $this->entityManager->createQueryBuilder()
+            ->select('te', 'c', 'wc')
+            ->from(TimeEntry::class, 'te')
+            ->join('te.client', 'c')
+            ->join('te.workCategory', 'wc')
+            ->where('te.date BETWEEN :date_from AND :date_to')
+            ->setParameter('date_from', $this->parseDate($dateFrom))
+            ->setParameter('date_to', $this->parseDate($dateTo))
+            ->orderBy('te.date', 'DESC')
+            ->addOrderBy('te.startTime', 'DESC')
+            ->addOrderBy('te.id', 'DESC');
 
         if ($clientId !== null) {
-            $where .= ' AND te.client_id = :client_id';
-            $params['client_id'] = $clientId;
+            $queryBuilder
+                ->andWhere('c.id = :client_id')
+                ->setParameter('client_id', $clientId);
         }
 
-        return $this->entityManager->getConnection()->fetchAllAssociative(
-            "SELECT
-                te.id,
-                te.date,
-                te.start_time,
-                te.end_time,
-                te.hours,
-                te.comment,
-                c.name AS client_name,
-                wc.name AS work_category_name
-             FROM time_entries te
-             INNER JOIN clients c ON c.id = te.client_id
-             INNER JOIN work_categories wc ON wc.id = te.work_category_id
-             WHERE {$where}
-             ORDER BY te.date DESC, te.start_time DESC, te.id DESC",
-            $params
-        );
+        /** @var TimeEntry[] $entries */
+        $entries = $queryBuilder->getQuery()->getResult();
+
+        return array_map(static fn (TimeEntry $entry): array => [
+            'id' => $entry->getId(),
+            'date' => $entry->getDate()->format('Y-m-d'),
+            'start_time' => $entry->getStartTime()->format('H:i'),
+            'end_time' => $entry->getEndTime()->format('H:i'),
+            'hours' => (float) $entry->getHours(),
+            'comment' => $entry->getComment(),
+            'client_name' => $entry->getClient()->getName(),
+            'work_category_name' => $entry->getWorkCategory()->getName(),
+        ], $entries);
     }
 
     public function summarizeDailyForPeriod(string $dateFrom, string $dateTo, ?int $clientId = null): array
     {
-        $where = 'te.date BETWEEN :date_from AND :date_to';
-        $params = [
-            'date_from' => $dateFrom,
-            'date_to' => $dateTo,
-        ];
+        $queryBuilder = $this->entityManager->createQueryBuilder()
+            ->select('te.date AS work_date', 'SUM(te.hours) AS total_hours')
+            ->from(TimeEntry::class, 'te')
+            ->join('te.client', 'c')
+            ->where('te.date BETWEEN :date_from AND :date_to')
+            ->setParameter('date_from', $this->parseDate($dateFrom))
+            ->setParameter('date_to', $this->parseDate($dateTo))
+            ->groupBy('te.date')
+            ->orderBy('te.date', 'DESC');
 
         if ($clientId !== null) {
-            $where .= ' AND te.client_id = :client_id';
-            $params['client_id'] = $clientId;
+            $queryBuilder
+                ->andWhere('c.id = :client_id')
+                ->setParameter('client_id', $clientId);
         }
 
-        return $this->entityManager->getConnection()->fetchAllAssociative(
-            "SELECT te.date, SUM(te.hours) AS total_hours
-             FROM time_entries te
-             WHERE {$where}
-             GROUP BY te.date
-             ORDER BY te.date DESC",
-            $params
-        );
+        $rows = $queryBuilder->getQuery()->getArrayResult();
+
+        return array_map(static fn (array $row): array => [
+            'date' => ($row['work_date'] instanceof DateTimeImmutable)
+                ? $row['work_date']->format('Y-m-d')
+                : (string) $row['work_date'],
+            'total_hours' => (float) $row['total_hours'],
+        ], $rows);
     }
 
     public function findById(int $id): ?array
     {
-        $entry = $this->entityManager->getConnection()->fetchAssociative(
-            'SELECT id, client_id, work_category_id, date, start_time, end_time, comment
-             FROM time_entries
-             WHERE id = :id',
-            ['id' => $id]
-        );
+        $entry = $this->entityManager->find(TimeEntry::class, $id);
+        if (!$entry instanceof TimeEntry) {
+            return null;
+        }
 
-        return $entry === false ? null : $entry;
+        return [
+            'id' => $entry->getId(),
+            'client_id' => $entry->getClient()->getId(),
+            'work_category_id' => $entry->getWorkCategory()->getId(),
+            'date' => $entry->getDate()->format('Y-m-d'),
+            'start_time' => $entry->getStartTime()->format('H:i'),
+            'end_time' => $entry->getEndTime()->format('H:i'),
+            'comment' => $entry->getComment(),
+        ];
     }
 
     public function validate(array $entry): array
@@ -93,66 +111,79 @@ final class TimeEntryService
         if (($entry['work_category_id'] ?? '') === '') {
             $errors[] = '作業分類は必須です。';
         }
-        if (!$this->isQuarterTime((string) ($entry['start_time'] ?? ''))) {
-            $errors[] = '開始時刻は15分刻みで指定してください。';
-        }
-        if (!$this->isQuarterTime((string) ($entry['end_time'] ?? ''))) {
-            $errors[] = '終了時刻は15分刻みで指定してください。';
-        }
 
         return $errors;
     }
 
     public function calculateHours(string $start, string $end): float
     {
-        [$startHour, $startMinute] = array_map('intval', explode(':', $start));
-        [$endHour, $endMinute] = array_map('intval', explode(':', $end));
+        $timeEntry = new TimeEntry();
+        $timeEntry->setStartTime($this->parseTime($start));
+        $timeEntry->setEndTime($this->parseTime($end));
 
-        $startMinutes = ($startHour * 60) + $startMinute;
-        $endMinutes = ($endHour * 60) + $endMinute;
-        if ($startMinutes === $endMinutes) {
-            throw new InvalidArgumentException('開始時刻と終了時刻は同一にできません。');
-        }
-        if ($startMinutes > $endMinutes) {
-            $endMinutes += 24 * 60;
-        }
-
-        return round(($endMinutes - $startMinutes) / 60, 2);
+        return (float) $timeEntry->getHours();
     }
 
-    public function create(array $entry, float $hours): void
+    public function create(array $entry): void
     {
-        $now = date('Y-m-d H:i:s');
-        $this->entityManager->getConnection()->insert('time_entries', [
-            'client_id' => (int) $entry['client_id'],
-            'work_category_id' => (int) $entry['work_category_id'],
-            'date' => $entry['date'],
-            'start_time' => $entry['start_time'] . ':00',
-            'end_time' => $entry['end_time'] . ':00',
-            'hours' => $hours,
-            'comment' => $entry['comment'] !== '' ? $entry['comment'] : null,
-            'created' => $now,
-            'modified' => $now,
-        ]);
+        $client = $this->entityManager->find(Client::class, (int) $entry['client_id']);
+        if (!$client instanceof Client) {
+            throw new InvalidArgumentException('クライアントが存在しません。');
+        }
+
+        $workCategory = $this->entityManager->find(WorkCategory::class, (int) $entry['work_category_id']);
+        if (!$workCategory instanceof WorkCategory) {
+            throw new InvalidArgumentException('作業分類が存在しません。');
+        }
+
+        $timeEntry = new TimeEntry();
+        $timeEntry->setClient($client);
+        $timeEntry->setWorkCategory($workCategory);
+        $timeEntry->setDate($this->parseDate((string) $entry['date']));
+        $timeEntry->setStartTime($this->parseTime((string) $entry['start_time']));
+        $timeEntry->setEndTime($this->parseTime((string) $entry['end_time']));
+        $timeEntry->setComment($entry['comment'] !== '' ? (string) $entry['comment'] : null);
+
+        $this->entityManager->persist($timeEntry);
+        $this->entityManager->flush();
     }
 
-    public function update(int $id, array $entry, float $hours): void
+    public function update(int $id, array $entry): void
     {
-        $this->entityManager->getConnection()->update('time_entries', [
-            'client_id' => (int) $entry['client_id'],
-            'work_category_id' => (int) $entry['work_category_id'],
-            'date' => $entry['date'],
-            'start_time' => $entry['start_time'] . ':00',
-            'end_time' => $entry['end_time'] . ':00',
-            'hours' => $hours,
-            'comment' => $entry['comment'] !== '' ? $entry['comment'] : null,
-            'modified' => date('Y-m-d H:i:s'),
-        ], ['id' => $id]);
+        $timeEntry = $this->entityManager->find(TimeEntry::class, $id);
+        if (!$timeEntry instanceof TimeEntry) {
+            return;
+        }
+
+        $client = $this->entityManager->find(Client::class, (int) $entry['client_id']);
+        if (!$client instanceof Client) {
+            throw new InvalidArgumentException('クライアントが存在しません。');
+        }
+
+        $workCategory = $this->entityManager->find(WorkCategory::class, (int) $entry['work_category_id']);
+        if (!$workCategory instanceof WorkCategory) {
+            throw new InvalidArgumentException('作業分類が存在しません。');
+        }
+
+        $timeEntry->setClient($client);
+        $timeEntry->setWorkCategory($workCategory);
+        $timeEntry->setDate($this->parseDate((string) $entry['date']));
+        $timeEntry->setStartTime($this->parseTime((string) $entry['start_time']));
+        $timeEntry->setEndTime($this->parseTime((string) $entry['end_time']));
+        $timeEntry->setComment($entry['comment'] !== '' ? (string) $entry['comment'] : null);
+
+        $this->entityManager->flush();
     }
 
     public function delete(int $id): void
     {
-        $this->entityManager->getConnection()->delete('time_entries', ['id' => $id]);
+        $timeEntry = $this->entityManager->find(TimeEntry::class, $id);
+        if (!$timeEntry instanceof TimeEntry) {
+            return;
+        }
+
+        $this->entityManager->remove($timeEntry);
+        $this->entityManager->flush();
     }
 
     public function buildTimeOptions(): array
@@ -181,14 +212,26 @@ final class TimeEntryService
 
     public function has(int $id): bool
     {
-        return (int) $this->entityManager->getConnection()->fetchOne(
-            'SELECT COUNT(*) FROM time_entries WHERE id = :id',
-            ['id' => $id]
-        ) > 0;
+        return $this->entityManager->find(TimeEntry::class, $id) instanceof TimeEntry;
     }
 
-    private function isQuarterTime(string $time): bool
+    private function parseDate(string $date): DateTimeImmutable
     {
-        return (bool) preg_match('/^\d{2}:(00|15|30|45)$/', $time);
+        $parsed = DateTimeImmutable::createFromFormat('Y-m-d', $date);
+        if (!$parsed instanceof DateTimeImmutable) {
+            throw new InvalidArgumentException('日付形式が不正です。');
+        }
+
+        return $parsed;
+    }
+
+    private function parseTime(string $time): DateTimeImmutable
+    {
+        $parsed = DateTimeImmutable::createFromFormat('H:i', $time);
+        if (!$parsed instanceof DateTimeImmutable) {
+            throw new InvalidArgumentException('時刻形式が不正です。');
+        }
+
+        return $parsed;
     }
 }

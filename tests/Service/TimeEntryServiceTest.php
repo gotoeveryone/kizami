@@ -45,19 +45,12 @@ final class TimeEntryServiceTest extends TestCase
     }
 
     #[Test]
-    public function validateShouldReturnErrorsForInvalidQuarterTimes(): void
+    public function calculateHoursShouldThrowForInvalidQuarterTimes(): void
     {
-        $errors = $this->service->validate([
-            'date' => '2026-02-12',
-            'client_id' => '1',
-            'work_category_id' => '1',
-            'start_time' => '09:10',
-            'end_time' => '10:01',
-            'comment' => '',
-        ]);
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('開始時刻は15分刻みで指定してください。');
 
-        self::assertContains('開始時刻は15分刻みで指定してください。', $errors);
-        self::assertContains('終了時刻は15分刻みで指定してください。', $errors);
+        $this->service->calculateHours('09:10', '10:00');
     }
 
     #[Test]

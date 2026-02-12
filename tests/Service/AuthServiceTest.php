@@ -5,8 +5,9 @@ declare(strict_types=1);
 namespace Tests\Service;
 
 use App\Service\AuthService;
-use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\Query;
+use Doctrine\ORM\QueryBuilder;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
@@ -67,16 +68,7 @@ final class AuthServiceTest extends TestCase
     #[Test]
     public function validateApiKeyShouldReturnTrueWhenActiveKeyExists(): void
     {
-        $connection = $this->createMock(Connection::class);
-        $connection->expects(self::once())
-            ->method('fetchOne')
-            ->with(
-                self::stringContains('SELECT COUNT(*) FROM api_keys'),
-                ['hash' => hash('sha256', 'dev-key')]
-            )
-            ->willReturn(1);
-
-        $service = $this->createService(connection: $connection);
+        $service = $this->createService(apiKeyCount: 1);
 
         self::assertTrue($service->validateApiKey('dev-key'));
     }
@@ -84,24 +76,29 @@ final class AuthServiceTest extends TestCase
     #[Test]
     public function validateApiKeyShouldReturnFalseWhenNoActiveKeyExists(): void
     {
-        $connection = $this->createMock(Connection::class);
-        $connection->expects(self::once())
-            ->method('fetchOne')
-            ->willReturn(0);
-
-        $service = $this->createService(connection: $connection);
+        $service = $this->createService(apiKeyCount: 0);
 
         self::assertFalse($service->validateApiKey('dev-key'));
     }
 
     private function createService(
-        ?Connection $connection = null,
+        int $apiKeyCount = 0,
         string $adminUsername = 'admin',
         string $adminPassword = 'password',
     ): AuthService {
+        $query = $this->createMock(Query::class);
+        $query->method('getSingleScalarResult')->willReturn($apiKeyCount);
+
+        $queryBuilder = $this->createMock(QueryBuilder::class);
+        $queryBuilder->method('select')->willReturnSelf();
+        $queryBuilder->method('from')->willReturnSelf();
+        $queryBuilder->method('where')->willReturnSelf();
+        $queryBuilder->method('andWhere')->willReturnSelf();
+        $queryBuilder->method('setParameter')->willReturnSelf();
+        $queryBuilder->method('getQuery')->willReturn($query);
+
         $entityManager = $this->createMock(EntityManagerInterface::class);
-        $entityManager->method('getConnection')
-            ->willReturn($connection ?? $this->createMock(Connection::class));
+        $entityManager->method('createQueryBuilder')->willReturn($queryBuilder);
 
         return new AuthService(
             $entityManager,

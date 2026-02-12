@@ -31,20 +31,17 @@ final class TimeEntriesController
         $old = $this->timeEntryService->normalizeInput((array) $request->getParsedBody());
         $errors = $this->timeEntryService->validate($old);
 
-        $hours = null;
-        if ($errors === []) {
-            try {
-                $hours = $this->timeEntryService->calculateHours($old['start_time'], $old['end_time']);
-            } catch (InvalidArgumentException $e) {
-                $errors[] = $e->getMessage();
-            }
-        }
-
         if ($errors !== []) {
             return $this->renderHome($request, $response, $errors, $old, 422);
         }
 
-        $this->timeEntryService->create($old, $hours);
+        try {
+            $this->timeEntryService->create($old);
+        } catch (InvalidArgumentException $e) {
+            $errors[] = $e->getMessage();
+
+            return $this->renderHome($request, $response, $errors, $old, 422);
+        }
 
         return $response->withHeader('Location', '/?saved=1')->withStatus(302);
     }
@@ -90,15 +87,6 @@ final class TimeEntriesController
         $entry['id'] = $id;
         $errors = $this->timeEntryService->validate($entry);
 
-        $hours = null;
-        if ($errors === []) {
-            try {
-                $hours = $this->timeEntryService->calculateHours($entry['start_time'], $entry['end_time']);
-            } catch (InvalidArgumentException $e) {
-                $errors[] = $e->getMessage();
-            }
-        }
-
         if ($errors !== []) {
             return Twig::fromRequest($request)->render($response->withStatus(422), 'time_entry_edit.html.twig', [
                 'title' => '稼働時間を編集',
@@ -110,7 +98,20 @@ final class TimeEntriesController
             ]);
         }
 
-        $this->timeEntryService->update($id, $entry, $hours);
+        try {
+            $this->timeEntryService->update($id, $entry);
+        } catch (InvalidArgumentException $e) {
+            $errors[] = $e->getMessage();
+
+            return Twig::fromRequest($request)->render($response->withStatus(422), 'time_entry_edit.html.twig', [
+                'title' => '稼働時間を編集',
+                'entry' => $entry,
+                'clients' => $this->clientService->listForSelect(),
+                'workCategories' => $this->workCategoryService->listForSelect(),
+                'timeOptions' => $this->timeEntryService->buildTimeOptions(),
+                'errors' => $errors,
+            ]);
+        }
 
         return $response->withHeader('Location', '/?updated=1')->withStatus(302);
     }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Service;
 
+use App\Domain\Entity\ApiKey;
 use Doctrine\ORM\EntityManagerInterface;
 
 final class AuthService
@@ -56,10 +57,15 @@ final class AuthService
         }
 
         $hash = hash('sha256', $rawKey);
-        $count = (int) $this->entityManager->getConnection()->fetchOne(
-            'SELECT COUNT(*) FROM api_keys WHERE key_hash = :hash AND is_active = 1',
-            ['hash' => $hash]
-        );
+        $count = (int) $this->entityManager->createQueryBuilder()
+            ->select('COUNT(ak.id)')
+            ->from(ApiKey::class, 'ak')
+            ->where('ak.keyHash = :hash')
+            ->andWhere('ak.isActive = :is_active')
+            ->setParameter('hash', $hash)
+            ->setParameter('is_active', true)
+            ->getQuery()
+            ->getSingleScalarResult();
 
         return $count > 0;
     }

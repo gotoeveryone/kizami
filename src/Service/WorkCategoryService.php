@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Service;
 
+use App\Domain\Entity\WorkCategory;
 use Doctrine\ORM\EntityManagerInterface;
 use Throwable;
 
@@ -16,34 +17,52 @@ final class WorkCategoryService
 
     public function listAll(): array
     {
-        return $this->entityManager->getConnection()->fetchAllAssociative(
-            'SELECT id, name, sort_order, created, modified FROM work_categories ORDER BY sort_order ASC, id ASC'
-        );
+        $categories = $this->entityManager->getRepository(WorkCategory::class)
+            ->createQueryBuilder('wc')
+            ->orderBy('wc.sortOrder', 'ASC')
+            ->addOrderBy('wc.id', 'ASC')
+            ->getQuery()
+            ->getResult();
+
+        return array_map(static fn (WorkCategory $category): array => [
+            'id' => $category->getId(),
+            'name' => $category->getName(),
+            'sort_order' => $category->getSortOrder(),
+        ], $categories);
     }
 
     public function listForSelect(): array
     {
-        return $this->entityManager->getConnection()->fetchAllAssociative(
-            'SELECT id, name FROM work_categories ORDER BY sort_order ASC, id ASC'
-        );
+        $categories = $this->entityManager->getRepository(WorkCategory::class)
+            ->createQueryBuilder('wc')
+            ->orderBy('wc.sortOrder', 'ASC')
+            ->addOrderBy('wc.id', 'ASC')
+            ->getQuery()
+            ->getResult();
+
+        return array_map(static fn (WorkCategory $category): array => [
+            'id' => $category->getId(),
+            'name' => $category->getName(),
+        ], $categories);
     }
 
     public function findById(int $id): ?array
     {
-        $category = $this->entityManager->getConnection()->fetchAssociative(
-            'SELECT id, name, sort_order FROM work_categories WHERE id = :id',
-            ['id' => $id]
-        );
+        $category = $this->entityManager->find(WorkCategory::class, $id);
+        if (!$category instanceof WorkCategory) {
+            return null;
+        }
 
-        return $category === false ? null : $category;
+        return [
+            'id' => $category->getId(),
+            'name' => $category->getName(),
+            'sort_order' => $category->getSortOrder(),
+        ];
     }
 
     public function has(int $id): bool
     {
-        return (int) $this->entityManager->getConnection()->fetchOne(
-            'SELECT COUNT(*) FROM work_categories WHERE id = :id',
-            ['id' => $id]
-        ) > 0;
+        return $this->entityManager->find(WorkCategory::class, $id) instanceof WorkCategory;
     }
 
     public function normalizeInput(array $data): array
@@ -69,28 +88,36 @@ final class WorkCategoryService
 
     public function create(array $category): void
     {
-        $now = date('Y-m-d H:i:s');
-        $this->entityManager->getConnection()->insert('work_categories', [
-            'name' => $category['name'],
-            'sort_order' => (int) $category['sort_order'],
-            'created' => $now,
-            'modified' => $now,
-        ]);
+        $entity = new WorkCategory(
+            (string) $category['name'],
+            (int) $category['sort_order']
+        );
+        $this->entityManager->persist($entity);
+        $this->entityManager->flush();
     }
 
     public function update(int $id, array $category): void
     {
-        $this->entityManager->getConnection()->update('work_categories', [
-            'name' => $category['name'],
-            'sort_order' => (int) $category['sort_order'],
-            'modified' => date('Y-m-d H:i:s'),
-        ], ['id' => $id]);
+        $entity = $this->entityManager->find(WorkCategory::class, $id);
+        if (!$entity instanceof WorkCategory) {
+            return;
+        }
+
+        $entity->setName((string) $category['name']);
+        $entity->setSortOrder((int) $category['sort_order']);
+        $this->entityManager->flush();
     }
 
     public function delete(int $id): bool
     {
+        $entity = $this->entityManager->find(WorkCategory::class, $id);
+        if (!$entity instanceof WorkCategory) {
+            return true;
+        }
+
         try {
-            $this->entityManager->getConnection()->delete('work_categories', ['id' => $id]);
+            $this->entityManager->remove($entity);
+            $this->entityManager->flush();
         } catch (Throwable) {
             return false;
         }
