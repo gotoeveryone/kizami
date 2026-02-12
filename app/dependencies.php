@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Service\AuthService;
 use DI\ContainerBuilder;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\ORM\EntityManager;
@@ -48,6 +49,13 @@ return function (ContainerBuilder $containerBuilder): void {
         },
 
         Twig::class => DI\get('view'),
+
+        AuthService::class => function (ContainerInterface $c): AuthService {
+            return new AuthService(
+                $c->get(EntityManagerInterface::class),
+                $c->get('settings'),
+            );
+        },
 
         LoggerInterface::class => function (ContainerInterface $c): LoggerInterface {
             $settings = $c->get('settings')['logger'];

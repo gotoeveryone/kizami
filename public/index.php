@@ -10,6 +10,10 @@ require __DIR__ . '/../vendor/autoload.php';
 $dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/..');
 $dotenv->safeLoad();
 
+if (session_status() !== PHP_SESSION_ACTIVE) {
+    session_start();
+}
+
 // PHP-DI コンテナ構築
 $containerBuilder = new ContainerBuilder();
 

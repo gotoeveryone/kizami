@@ -1,13 +1,10 @@
 {% extends "layout/base.html.twig" %}
 
-{% block title %}Kizami - クライアント管理{% endblock %}
+{% block title %}Kizami - 作業分類管理{% endblock %}
 
 {% block body %}
-    <h1>クライアント管理</h1>
-    <p>
-        <a href="/">稼働時間画面へ戻る</a> /
-        <a href="/work-categories">作業分類管理へ</a>
-    </p>
+    <h1>作業分類管理</h1>
+    <p><a href="/">稼働時間画面へ戻る</a></p>
     <form method="post" action="/logout">
         <button type="submit">ログアウト</button>
     </form>
@@ -29,25 +26,23 @@
     {% endif %}
 
     <h2>新規追加</h2>
-    <form method="post" action="/clients">
-        <div>
-            <label for="name">クライアント名</label>
-            <input id="name" type="text" name="name" value="{{ old.name }}" required>
-        </div>
-        <div>
-            <label for="sort_order">表示順</label>
-            <input id="sort_order" type="number" name="sort_order" value="{{ old.sort_order }}" required>
-        </div>
+    <form method="post" action="/work-categories">
+        <label for="name">作業分類名</label>
+        <input id="name" type="text" name="name" value="{{ old.name }}" required>
+
+        <label for="sort_order">表示順</label>
+        <input id="sort_order" type="number" name="sort_order" value="{{ old.sort_order }}" required>
+
         <button type="submit">追加</button>
     </form>
 
     <h2>一覧</h2>
-    {% if clients %}
+    {% if workCategories %}
         <table>
             <thead>
             <tr>
                 <th>ID</th>
-                <th>クライアント名</th>
+                <th>作業分類名</th>
                 <th>表示順</th>
                 <th>作成</th>
                 <th>更新</th>
@@ -55,16 +50,16 @@
             </tr>
             </thead>
             <tbody>
-            {% for client in clients %}
+            {% for workCategory in workCategories %}
                 <tr>
-                    <td>{{ client.id }}</td>
-                    <td>{{ client.name }}</td>
-                    <td>{{ client.sort_order }}</td>
-                    <td>{{ client.created }}</td>
-                    <td>{{ client.modified }}</td>
+                    <td>{{ workCategory.id }}</td>
+                    <td>{{ workCategory.name }}</td>
+                    <td>{{ workCategory.sort_order }}</td>
+                    <td>{{ workCategory.created }}</td>
+                    <td>{{ workCategory.modified }}</td>
                     <td>
-                        <a href="/clients/{{ client.id }}/edit">編集</a>
-                        <form method="post" action="/clients/{{ client.id }}/delete">
+                        <a href="/work-categories/{{ workCategory.id }}/edit">編集</a>
+                        <form method="post" action="/work-categories/{{ workCategory.id }}/delete">
                             <button type="submit" onclick="return confirm('削除しますか？');">削除</button>
                         </form>
                     </td>
@@ -73,6 +68,6 @@
             </tbody>
         </table>
     {% else %}
-        <p>クライアントはまだありません。</p>
+        <p>作業分類はまだありません。</p>
     {% endif %}
 {% endblock %}

@@ -1,0 +1,27 @@
+{% extends "layout/base.html.twig" %}
+
+{% block title %}Kizami - 作業分類編集{% endblock %}
+
+{% block body %}
+    <h1>作業分類編集</h1>
+    <p><a href="/work-categories">作業分類管理へ戻る</a></p>
+    <form method="post" action="/logout">
+        <button type="submit">ログアウト</button>
+    </form>
+
+    {% if errors %}
+        {% for error in errors %}
+            <article>{{ error }}</article>
+        {% endfor %}
+    {% endif %}
+
+    <form method="post" action="/work-categories/{{ workCategory.id }}">
+        <label for="name">作業分類名</label>
+        <input id="name" type="text" name="name" value="{{ workCategory.name }}" required>
+
+        <label for="sort_order">表示順</label>
+        <input id="sort_order" type="number" name="sort_order" value="{{ workCategory.sort_order }}" required>
+
+        <button type="submit">更新</button>
+    </form>
+{% endblock %}

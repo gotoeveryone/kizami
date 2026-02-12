@@ -4,14 +4,19 @@
 
 {% block body %}
     <h1>クライアント編集</h1>
-    <p><a href="/clients">クライアント管理へ戻る</a></p>
+    <p>
+        <a href="/clients">クライアント管理へ戻る</a> /
+        <a href="/">稼働時間画面へ</a> /
+        <a href="/work-categories">作業分類管理へ</a>
+    </p>
+    <form method="post" action="/logout">
+        <button type="submit">ログアウト</button>
+    </form>
 
     {% if errors %}
-        <ul>
-            {% for error in errors %}
-                <li>{{ error }}</li>
-            {% endfor %}
-        </ul>
+        {% for error in errors %}
+            <article>{{ error }}</article>
+        {% endfor %}
     {% endif %}
 
     <form method="post" action="/clients/{{ client.id }}">

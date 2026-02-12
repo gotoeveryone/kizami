@@ -1,0 +1,56 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Controller;
+
+use App\Service\AuthService;
+use Psr\Http\Message\ResponseInterface as Response;
+use Psr\Http\Message\ServerRequestInterface as Request;
+use Slim\Views\Twig;
+
+final class AuthController
+{
+    public function __construct(
+        private readonly AuthService $authService,
+    ) {
+    }
+
+    public function showLogin(Request $request, Response $response): Response
+    {
+        if ($this->authService->isLoggedIn()) {
+            return $response->withHeader('Location', '/')->withStatus(302);
+        }
+
+        return Twig::fromRequest($request)->render($response, 'login.html.twig', [
+            'title' => 'ログイン',
+            'error' => null,
+        ]);
+    }
+
+    public function login(Request $request, Response $response): Response
+    {
+        $data = (array) $request->getParsedBody();
+        $username = trim((string) ($data['username'] ?? ''));
+        $password = (string) ($data['password'] ?? '');
+
+        if ($this->authService->attemptLogin($username, $password)) {
+            session_regenerate_id(true);
+
+            return $response->withHeader('Location', '/')->withStatus(302);
+        }
+
+        return Twig::fromRequest($request)->render($response->withStatus(401), 'login.html.twig', [
+            'title' => 'ログイン',
+            'error' => 'ログイン情報が正しくありません。',
+        ]);
+    }
+
+    public function logout(Request $request, Response $response): Response
+    {
+        $this->authService->logout();
+        session_regenerate_id(true);
+
+        return $response->withHeader('Location', '/login')->withStatus(302);
+    }
+}

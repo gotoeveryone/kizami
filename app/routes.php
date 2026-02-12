@@ -2,11 +2,18 @@
 
 declare(strict_types=1);
 
+use App\Controller\ApiReportController;
+use App\Controller\AuthController;
 use App\Controller\ClientsController;
 use App\Controller\TimeEntriesController;
+use App\Controller\WorkCategoriesController;
 use Slim\App;
 
 return function (App $app): void {
+    $app->get('/login', AuthController::class . ':showLogin');
+    $app->post('/login', AuthController::class . ':login');
+    $app->post('/logout', AuthController::class . ':logout');
+
     $app->get('/', TimeEntriesController::class . ':index');
     $app->post('/time-entries', TimeEntriesController::class . ':store');
     $app->get('/time-entries/{id}/edit', TimeEntriesController::class . ':edit');
@@ -18,4 +25,12 @@ return function (App $app): void {
     $app->get('/clients/{id}/edit', ClientsController::class . ':edit');
     $app->post('/clients/{id}', ClientsController::class . ':update');
     $app->post('/clients/{id}/delete', ClientsController::class . ':delete');
+
+    $app->get('/work-categories', WorkCategoriesController::class . ':index');
+    $app->post('/work-categories', WorkCategoriesController::class . ':store');
+    $app->get('/work-categories/{id}/edit', WorkCategoriesController::class . ':edit');
+    $app->post('/work-categories/{id}', WorkCategoriesController::class . ':update');
+    $app->post('/work-categories/{id}/delete', WorkCategoriesController::class . ':delete');
+
+    $app->get('/api/v1/reports/hours', ApiReportController::class . ':summarize');
 };

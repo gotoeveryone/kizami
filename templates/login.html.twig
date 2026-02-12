@@ -1,0 +1,21 @@
+{% extends "layout/base.html.twig" %}
+
+{% block title %}Kizami - ログイン{% endblock %}
+
+{% block body %}
+    <h1>ログイン</h1>
+
+    {% if error %}
+        <article>{{ error }}</article>
+    {% endif %}
+
+    <form method="post" action="/login">
+        <label for="username">ユーザー名</label>
+        <input id="username" type="text" name="username" required>
+
+        <label for="password">パスワード</label>
+        <input id="password" type="password" name="password" required>
+
+        <button type="submit">ログイン</button>
+    </form>
+{% endblock %}

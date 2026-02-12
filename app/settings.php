@@ -36,6 +36,11 @@ return function (ContainerBuilder $containerBuilder): void {
                 'name' => 'kizami',
                 'path' => __DIR__ . '/../var/log/app.log',
             ],
+            'auth' => [
+                'session_key' => 'kizami_user',
+                'admin_username' => $_ENV['APP_ADMIN_USERNAME'] ?? 'admin',
+                'admin_password' => $_ENV['APP_ADMIN_PASSWORD'] ?? 'password',
+            ],
         ],
     ]);
 };
