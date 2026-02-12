@@ -1,8 +1,7 @@
 services:
   app:
-    build:
-      context: .
-      dockerfile: docker/php/Dockerfile
+    image: ghcr.io/gotoeveryone/composer-php:8.4
+    working_dir: /var/www/html
     ports:
       - "8080:8080"
     volumes:
@@ -12,6 +11,7 @@ services:
         condition: service_healthy
     environment:
       - APP_ENV=development
+    command: ["php", "-S", "0.0.0.0:8080", "-t", "/var/www/html/public"]
 
   db:
     image: mariadb:10.5
