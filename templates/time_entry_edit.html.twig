@@ -1,0 +1,72 @@
+{% extends "layout/base.html.twig" %}
+
+{% block title %}Kizami - 稼働時間編集{% endblock %}
+
+{% block body %}
+    <h1>稼働時間編集</h1>
+    <p><a href="/">一覧へ戻る</a></p>
+
+    {% if errors %}
+        <ul>
+            {% for error in errors %}
+                <li>{{ error }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+
+    <form method="post" action="/time-entries/{{ entry.id }}">
+        <div>
+            <label for="date">日付</label>
+            <input id="date" type="date" name="date" value="{{ entry.date }}" required>
+        </div>
+
+        <div>
+            <label for="client_id">クライアント</label>
+            <select id="client_id" name="client_id" required>
+                <option value="">選択してください</option>
+                {% for client in clients %}
+                    <option value="{{ client.id }}" {% if entry.client_id == client.id %}selected{% endif %}>
+                        {{ client.name }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div>
+            <label for="work_category_id">作業分類</label>
+            <select id="work_category_id" name="work_category_id" required>
+                <option value="">選択してください</option>
+                {% for category in workCategories %}
+                    <option value="{{ category.id }}" {% if entry.work_category_id == category.id %}selected{% endif %}>
+                        {{ category.name }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div>
+            <label for="start_time">開始</label>
+            <select id="start_time" name="start_time" required>
+                {% for time in timeOptions %}
+                    <option value="{{ time }}" {% if entry.start_time == time %}selected{% endif %}>{{ time }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div>
+            <label for="end_time">終了</label>
+            <select id="end_time" name="end_time" required>
+                {% for time in timeOptions %}
+                    <option value="{{ time }}" {% if entry.end_time == time %}selected{% endif %}>{{ time }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div>
+            <label for="comment">コメント</label>
+            <textarea id="comment" name="comment" rows="3">{{ entry.comment }}</textarea>
+        </div>
+
+        <button type="submit">更新</button>
+    </form>
+{% endblock %}

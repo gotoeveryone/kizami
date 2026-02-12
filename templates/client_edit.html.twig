@@ -1,0 +1,28 @@
+{% extends "layout/base.html.twig" %}
+
+{% block title %}Kizami - クライアント編集{% endblock %}
+
+{% block body %}
+    <h1>クライアント編集</h1>
+    <p><a href="/clients">クライアント管理へ戻る</a></p>
+
+    {% if errors %}
+        <ul>
+            {% for error in errors %}
+                <li>{{ error }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+
+    <form method="post" action="/clients/{{ client.id }}">
+        <div>
+            <label for="name">クライアント名</label>
+            <input id="name" type="text" name="name" value="{{ client.name }}" required>
+        </div>
+        <div>
+            <label for="sort_order">表示順</label>
+            <input id="sort_order" type="number" name="sort_order" value="{{ client.sort_order }}" required>
+        </div>
+        <button type="submit">更新</button>
+    </form>
+{% endblock %}

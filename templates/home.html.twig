@@ -1,8 +1,123 @@
 {% extends "layout/base.html.twig" %}
 
-{% block title %}Kizami - Home{% endblock %}
+{% block title %}Kizami - 稼働時間{% endblock %}
 
 {% block body %}
     <h1>Kizami</h1>
     <p>稼働時間管理ツール</p>
+    <p><a href="/clients">クライアント管理へ</a></p>
+
+    {% if saved %}
+        <p>保存しました。</p>
+    {% endif %}
+    {% if updated %}
+        <p>更新しました。</p>
+    {% endif %}
+    {% if deleted %}
+        <p>削除しました。</p>
+    {% endif %}
+
+    {% if errors %}
+        <ul>
+            {% for error in errors %}
+                <li>{{ error }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+
+    <h2>稼働時間を登録</h2>
+    <form method="post" action="/time-entries">
+        <div>
+            <label for="date">日付</label>
+            <input id="date" type="date" name="date" value="{{ old.date }}" required>
+        </div>
+
+        <div>
+            <label for="client_id">クライアント</label>
+            <select id="client_id" name="client_id" required>
+                <option value="">選択してください</option>
+                {% for client in clients %}
+                    <option value="{{ client.id }}" {% if old.client_id == client.id %}selected{% endif %}>
+                        {{ client.name }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div>
+            <label for="work_category_id">作業分類</label>
+            <select id="work_category_id" name="work_category_id" required>
+                <option value="">選択してください</option>
+                {% for category in workCategories %}
+                    <option value="{{ category.id }}" {% if old.work_category_id == category.id %}selected{% endif %}>
+                        {{ category.name }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div>
+            <label for="start_time">開始</label>
+            <select id="start_time" name="start_time" required>
+                {% for time in timeOptions %}
+                    <option value="{{ time }}" {% if old.start_time == time %}selected{% endif %}>{{ time }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div>
+            <label for="end_time">終了</label>
+            <select id="end_time" name="end_time" required>
+                {% for time in timeOptions %}
+                    <option value="{{ time }}" {% if old.end_time == time %}selected{% endif %}>{{ time }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div>
+            <label for="comment">コメント</label>
+            <textarea id="comment" name="comment" rows="3">{{ old.comment }}</textarea>
+        </div>
+
+        <button type="submit">保存</button>
+    </form>
+
+    <h2>稼働履歴</h2>
+    {% if timeEntries %}
+        <table border="1" cellpadding="6">
+            <thead>
+            <tr>
+                <th>日付</th>
+                <th>クライアント</th>
+                <th>作業分類</th>
+                <th>開始</th>
+                <th>終了</th>
+                <th>時間</th>
+                <th>コメント</th>
+                <th>操作</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for entry in timeEntries %}
+                <tr>
+                    <td>{{ entry.date }}</td>
+                    <td>{{ entry.client_name }}</td>
+                    <td>{{ entry.work_category_name }}</td>
+                    <td>{{ entry.start_time|slice(0, 5) }}</td>
+                    <td>{{ entry.end_time|slice(0, 5) }}</td>
+                    <td>{{ entry.hours }}</td>
+                    <td>{{ entry.comment }}</td>
+                    <td>
+                        <a href="/time-entries/{{ entry.id }}/edit">編集</a>
+                        <form method="post" action="/time-entries/{{ entry.id }}/delete" style="display:inline;">
+                            <button type="submit" onclick="return confirm('削除しますか？');">削除</button>
+                        </form>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>まだ登録がありません。</p>
+    {% endif %}
 {% endblock %}
