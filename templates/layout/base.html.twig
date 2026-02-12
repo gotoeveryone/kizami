@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Kizami{% endblock %}</title>
+    <link rel="icon" type="image/svg+xml" href="/assets/logo-kizami.svg">
     <link
         rel="stylesheet"
         href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"
@@ -133,15 +134,34 @@
         }
 
         .top-nav .brand {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
             font-size: 1rem;
             font-weight: 700;
             margin-right: 0.75rem;
             text-decoration: none;
         }
 
+        .top-nav .brand img {
+            width: 1.35rem;
+            height: 1.35rem;
+            display: block;
+            border-radius: 0.25rem;
+        }
+
         .top-nav .nav-links a {
             margin-right: 0.45rem;
             text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            min-height: 1.6rem;
+        }
+
+        .top-nav .nav-links {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.1rem;
         }
 
         .logout-compact {
@@ -159,7 +179,10 @@
     {% if not (hideTopNav ?? false) %}
         <header class="top-nav">
             <div class="nav-links">
-                <a href="/" class="brand">Kizami</a>
+                <a href="/" class="brand">
+                    <img src="/assets/logo-kizami.svg" alt="Kizami logo">
+                    <span>Kizami</span>
+                </a>
                 <a href="/">稼働時間</a>
                 <a href="/clients">クライアント</a>
                 <a href="/work-categories">作業分類</a>
