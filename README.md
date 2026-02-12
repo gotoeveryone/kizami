@@ -34,6 +34,7 @@ docker compose run --rm app php bin/doctrine migrations:migrate -n
 
 - 画面: セッション認証
   - `.env` の `APP_ADMIN_USERNAME` / `APP_ADMIN_PASSWORD` を利用
+  - いずれか未設定（空含む）の場合、ログイン不可
 - API: API キー認証
   - `Authorization: Bearer <API_KEY>` ヘッダを利用
   - API キーは `api_keys` テーブルでハッシュ（SHA-256）管理

@@ -38,8 +38,8 @@ return function (ContainerBuilder $containerBuilder): void {
             ],
             'auth' => [
                 'session_key' => 'kizami_user',
-                'admin_username' => $_ENV['APP_ADMIN_USERNAME'] ?? 'admin',
-                'admin_password' => $_ENV['APP_ADMIN_PASSWORD'] ?? 'password',
+                'admin_username' => $_ENV['APP_ADMIN_USERNAME'] ?? null,
+                'admin_password' => $_ENV['APP_ADMIN_PASSWORD'] ?? null,
             ],
         ],
     ]);

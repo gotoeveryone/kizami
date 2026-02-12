@@ -17,9 +17,16 @@ final class AuthService
     public function attemptLogin(string $username, string $password): bool
     {
         $auth = $this->settings['auth'];
+        $configuredUsername = trim((string) ($auth['admin_username'] ?? ''));
+        $configuredPassword = (string) ($auth['admin_password'] ?? '');
+
+        if ($configuredUsername === '' || $configuredPassword === '') {
+            return false;
+        }
+
         if (
-            hash_equals((string) $auth['admin_username'], $username)
-            && hash_equals((string) $auth['admin_password'], $password)
+            hash_equals($configuredUsername, $username)
+            && hash_equals($configuredPassword, $password)
         ) {
             $_SESSION[(string) $auth['session_key']] = $username;
 
