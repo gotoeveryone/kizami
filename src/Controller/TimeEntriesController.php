@@ -131,12 +131,21 @@ final class TimeEntriesController
         int $status = 200,
     ): Response {
         $query = $request->getQueryParams();
-        $month = (string) ($query['month'] ?? date('Y-m'));
-        if (!preg_match('/^\d{4}-(0[1-9]|1[0-2])$/', $month)) {
-            $month = date('Y-m');
+        $defaultTo = date('Y-m-d');
+        $defaultFrom = date('Y-m-d', strtotime('-14 days'));
+
+        $periodStart = trim((string) ($query['date_from'] ?? $defaultFrom));
+        $periodEnd = trim((string) ($query['date_to'] ?? $defaultTo));
+
+        if (!$this->isValidDate($periodStart)) {
+            $periodStart = $defaultFrom;
         }
-        $periodStart = $month . '-01';
-        $periodEnd = date('Y-m-t', strtotime($periodStart));
+        if (!$this->isValidDate($periodEnd)) {
+            $periodEnd = $defaultTo;
+        }
+        if ($periodStart > $periodEnd) {
+            [$periodStart, $periodEnd] = [$periodEnd, $periodStart];
+        }
 
         $clientFilterRaw = trim((string) ($query['client_id'] ?? ''));
         $clientFilter = ctype_digit($clientFilterRaw) && $clientFilterRaw !== ''
@@ -173,8 +182,20 @@ final class TimeEntriesController
             'saved' => isset($query['saved']),
             'updated' => isset($query['updated']),
             'deleted' => isset($query['deleted']),
-            'filterMonth' => $month,
+            'filterDateFrom' => $periodStart,
+            'filterDateTo' => $periodEnd,
             'filterClientId' => $clientFilterRaw,
         ]);
+    }
+
+    private function isValidDate(string $date): bool
+    {
+        if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
+            return false;
+        }
+
+        [$year, $month, $day] = array_map('intval', explode('-', $date));
+
+        return checkdate($month, $day, $year);
     }
 }

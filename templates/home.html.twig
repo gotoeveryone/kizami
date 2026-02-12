@@ -23,8 +23,11 @@
 
     <h2>表示条件</h2>
     <form method="get" action="/">
-        <label for="month">対象月</label>
-        <input id="month" type="month" name="month" value="{{ filterMonth }}">
+        <label for="date_from">対象期間（From）</label>
+        <input id="date_from" type="date" name="date_from" value="{{ filterDateFrom }}">
+
+        <label for="date_to">対象期間（To）</label>
+        <input id="date_to" type="date" name="date_to" value="{{ filterDateTo }}">
 
         <label for="filter_client_id">クライアント</label>
         <select id="filter_client_id" name="client_id">
@@ -40,7 +43,7 @@
     </form>
 
     <article>
-        <strong>{{ filterMonth }} 合計:</strong> {{ monthlyTotal }}h
+        <strong>{{ filterDateFrom }} 〜 {{ filterDateTo }} 合計:</strong> {{ monthlyTotal }}h
     </article>
 
     <details class="register-panel">
@@ -93,7 +96,7 @@
         </form>
     </details>
 
-    <h2>稼働履歴（{{ filterMonth }}）</h2>
+    <h2>稼働履歴（{{ filterDateFrom }} 〜 {{ filterDateTo }}）</h2>
     {% if timeEntries %}
         <table>
             <thead>
