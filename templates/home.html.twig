@@ -3,12 +3,7 @@
 {% block title %}Kizami - 稼働時間{% endblock %}
 
 {% block body %}
-    <h1>Kizami</h1>
-    <p>稼働時間管理ツール</p>
-    <p>
-        <a href="/clients">クライアント管理へ</a> /
-        <a href="/work-categories">作業分類管理へ</a>
-    </p>
+    <h1>稼働時間管理</h1>
 
     {% if saved %}
         <article>保存しました。</article>
@@ -67,8 +62,11 @@
         </table>
     {% endif %}
 
-    <details>
-        <summary>稼働時間を登録</summary>
+    <details class="register-panel">
+        <summary>
+            <span class="closed-label">＋ 稼働時間を登録（クリックで開く）</span>
+            <span class="open-label">− 稼働時間を登録（クリックで閉じる）</span>
+        </summary>
         <form method="post" action="/time-entries">
             <label for="date">日付</label>
             <input id="date" type="date" name="date" value="{{ old.date }}" required>

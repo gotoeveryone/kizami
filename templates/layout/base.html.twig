@@ -92,6 +92,33 @@
             word-break: break-word;
         }
 
+        .register-panel > summary {
+            list-style: none;
+            cursor: pointer;
+            border: 1px solid var(--pico-muted-border-color);
+            border-radius: 0.4rem;
+            padding: 0.45rem 0.6rem;
+            margin-bottom: 0.55rem;
+            font-weight: 600;
+            user-select: none;
+        }
+
+        .register-panel > summary::-webkit-details-marker {
+            display: none;
+        }
+
+        .register-panel .open-label {
+            display: none;
+        }
+
+        .register-panel[open] .closed-label {
+            display: none;
+        }
+
+        .register-panel[open] .open-label {
+            display: inline;
+        }
+
         .top-nav {
             display: flex;
             justify-content: space-between;
@@ -100,7 +127,14 @@
             font-size: 0.88rem;
         }
 
-        .top-nav a {
+        .top-nav .brand {
+            font-size: 1rem;
+            font-weight: 700;
+            margin-right: 0.75rem;
+            text-decoration: none;
+        }
+
+        .top-nav .nav-links a {
             margin-right: 0.45rem;
             text-decoration: none;
         }
@@ -119,7 +153,8 @@
 <main class="container">
     {% if not (hideTopNav ?? false) %}
         <header class="top-nav">
-            <div>
+            <div class="nav-links">
+                <a href="/" class="brand">Kizami</a>
                 <a href="/">稼働時間</a>
                 <a href="/clients">クライアント</a>
                 <a href="/work-categories">作業分類</a>
