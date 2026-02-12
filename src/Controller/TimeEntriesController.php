@@ -145,9 +145,11 @@ final class TimeEntriesController
 
         $timeEntries = $this->timeEntryService->listForPeriod($periodStart, $periodEnd, $clientFilter);
         $dailySummaries = $this->timeEntryService->summarizeDailyForPeriod($periodStart, $periodEnd, $clientFilter);
+        $dailyTotalsByDate = [];
         $monthlyTotal = 0.0;
         foreach ($dailySummaries as $summary) {
             $monthlyTotal += (float) $summary['total_hours'];
+            $dailyTotalsByDate[(string) $summary['date']] = (float) $summary['total_hours'];
         }
 
         return Twig::fromRequest($request)->render($response->withStatus($status), 'home.html.twig', [
@@ -156,6 +158,7 @@ final class TimeEntriesController
             'workCategories' => $this->workCategoryService->listForSelect(),
             'timeEntries' => $timeEntries,
             'dailySummaries' => $dailySummaries,
+            'dailyTotalsByDate' => $dailyTotalsByDate,
             'monthlyTotal' => round($monthlyTotal, 2),
             'timeOptions' => $this->timeEntryService->buildTimeOptions(),
             'errors' => $errors,

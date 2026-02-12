@@ -41,7 +41,7 @@ final class TimeEntryService
              INNER JOIN clients c ON c.id = te.client_id
              INNER JOIN work_categories wc ON wc.id = te.work_category_id
              WHERE {$where}
-             ORDER BY te.date DESC, te.start_time ASC, te.id ASC",
+             ORDER BY te.date DESC, te.start_time DESC, te.id DESC",
             $params
         );
     }

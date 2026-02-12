@@ -39,28 +39,9 @@
         <button type="submit">絞り込み</button>
     </form>
 
-    <h2>月次サマリ</h2>
     <article>
         <strong>{{ filterMonth }} 合計:</strong> {{ monthlyTotal }}h
     </article>
-    {% if dailySummaries %}
-        <table>
-            <thead>
-            <tr>
-                <th>日付</th>
-                <th>合計時間</th>
-            </tr>
-            </thead>
-            <tbody>
-            {% for summary in dailySummaries %}
-                <tr>
-                    <td>{{ summary.date }}</td>
-                    <td>{{ summary.total_hours }}h</td>
-                </tr>
-            {% endfor %}
-            </tbody>
-        </table>
-    {% endif %}
 
     <details class="register-panel">
         <summary>
@@ -117,7 +98,6 @@
         <table>
             <thead>
             <tr>
-                <th>日付</th>
                 <th>クライアント</th>
                 <th>作業分類</th>
                 <th>開始</th>
@@ -128,9 +108,18 @@
             </tr>
             </thead>
             <tbody>
+            {% set groupDate = '' %}
             {% for entry in timeEntries %}
+                {% if groupDate != entry.date %}
+                    {% set groupDate = entry.date %}
+                    <tr class="group-row">
+                        <td colspan="7">
+                            <strong>{{ groupDate }}</strong>
+                            <small>（合計 {{ dailyTotalsByDate[groupDate]|default(0) }}h）</small>
+                        </td>
+                    </tr>
+                {% endif %}
                 <tr>
-                    <td>{{ entry.date }}</td>
                     <td>{{ entry.client_name }}</td>
                     <td>{{ entry.work_category_name }}</td>
                     <td>{{ entry.start_time|slice(0, 5) }}</td>
