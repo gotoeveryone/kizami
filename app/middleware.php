@@ -8,7 +8,8 @@ use Slim\Views\Twig;
 use Slim\Views\TwigMiddleware;
 
 return function (App $app): void {
-    $twig = $app->getContainer()->get(Twig::class);
+    $container = $app->getContainer();
+    $twig = $container->get(Twig::class);
     $app->add(TwigMiddleware::create($app, $twig));
-    $app->add($app->getContainer()->get(AuthMiddleware::class));
+    $app->add($container->get(AuthMiddleware::class));
 };

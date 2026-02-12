@@ -25,6 +25,7 @@ final class AuthController
         return Twig::fromRequest($request)->render($response, 'login.html.twig', [
             'title' => 'ログイン',
             'error' => null,
+            'hideTopNav' => true,
         ]);
     }
 
@@ -43,6 +44,7 @@ final class AuthController
         return Twig::fromRequest($request)->render($response->withStatus(401), 'login.html.twig', [
             'title' => 'ログイン',
             'error' => 'ログイン情報が正しくありません。',
+            'hideTopNav' => true,
         ]);
     }
 

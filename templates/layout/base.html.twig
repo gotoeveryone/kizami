@@ -8,9 +8,127 @@
         rel="stylesheet"
         href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"
     >
+    <style>
+        :root {
+            --pico-font-size: 92.5%;
+            --pico-line-height: 1.35;
+            --pico-form-element-spacing-vertical: 0.4rem;
+            --pico-form-element-spacing-horizontal: 0.55rem;
+            --pico-spacing: 0.75rem;
+            --pico-typography-spacing-vertical: 0.75rem;
+        }
+
+        main.container {
+            max-width: 96vw;
+        }
+
+        h1 {
+            font-size: 1.6rem;
+            margin-bottom: 0.4rem;
+        }
+
+        h2 {
+            font-size: 1.1rem;
+            margin-top: 1rem;
+            margin-bottom: 0.45rem;
+        }
+
+        table td,
+        table th {
+            padding: 0.35rem 0.45rem;
+            font-size: 0.92rem;
+        }
+
+        table {
+            width: 100%;
+        }
+
+        button,
+        [role="button"],
+        input[type="submit"] {
+            padding: 0.35rem 0.6rem;
+            font-size: 0.9rem;
+        }
+
+        article {
+            padding: 0.5rem 0.65rem;
+            margin: 0.4rem 0;
+            font-size: 0.92rem;
+        }
+
+        .action-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.35rem;
+            align-items: center;
+        }
+
+        .action-buttons form {
+            margin: 0;
+        }
+
+        .action-buttons [role="button"],
+        .action-buttons button {
+            margin: 0;
+            white-space: nowrap;
+            min-width: 4.4rem;
+            justify-content: center;
+            align-items: center;
+            display: inline-flex;
+        }
+
+        .icon-button {
+            min-width: 2rem !important;
+            width: 2rem;
+            height: 2rem;
+            padding: 0;
+            font-size: 1rem;
+            line-height: 1;
+        }
+
+        .comment-cell {
+            max-width: 20rem;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .top-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 0.25rem 0 0.75rem;
+            font-size: 0.88rem;
+        }
+
+        .top-nav a {
+            margin-right: 0.45rem;
+            text-decoration: none;
+        }
+
+        .logout-compact {
+            border: none;
+            background: transparent;
+            color: var(--pico-muted-color);
+            padding: 0.15rem 0.3rem;
+            font-size: 0.82rem;
+            cursor: pointer;
+        }
+    </style>
 </head>
 <body>
 <main class="container">
+    {% if not (hideTopNav ?? false) %}
+        <header class="top-nav">
+            <div>
+                <a href="/">稼働時間</a>
+                <a href="/clients">クライアント</a>
+                <a href="/work-categories">作業分類</a>
+            </div>
+            <form method="post" action="/logout">
+                <button type="submit" class="logout-compact">ログアウト</button>
+            </form>
+        </header>
+    {% endif %}
     {% block body %}{% endblock %}
 </main>
 </body>

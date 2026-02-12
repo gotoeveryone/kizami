@@ -5,9 +5,6 @@
 {% block body %}
     <h1>作業分類管理</h1>
     <p><a href="/">稼働時間画面へ戻る</a></p>
-    <form method="post" action="/logout">
-        <button type="submit">ログアウト</button>
-    </form>
 
     {% if saved %}
         <article>保存しました。</article>
@@ -44,8 +41,6 @@
                 <th>ID</th>
                 <th>作業分類名</th>
                 <th>表示順</th>
-                <th>作成</th>
-                <th>更新</th>
                 <th>操作</th>
             </tr>
             </thead>
@@ -55,13 +50,25 @@
                     <td>{{ workCategory.id }}</td>
                     <td>{{ workCategory.name }}</td>
                     <td>{{ workCategory.sort_order }}</td>
-                    <td>{{ workCategory.created }}</td>
-                    <td>{{ workCategory.modified }}</td>
                     <td>
-                        <a href="/work-categories/{{ workCategory.id }}/edit">編集</a>
-                        <form method="post" action="/work-categories/{{ workCategory.id }}/delete">
-                            <button type="submit" onclick="return confirm('削除しますか？');">削除</button>
-                        </form>
+                        <div class="action-buttons">
+                            <a
+                                href="/work-categories/{{ workCategory.id }}/edit"
+                                role="button"
+                                class="secondary outline icon-button"
+                                aria-label="編集"
+                                title="編集"
+                            >✎</a>
+                            <form method="post" action="/work-categories/{{ workCategory.id }}/delete">
+                                <button
+                                    type="submit"
+                                    class="outline icon-button"
+                                    onclick="return confirm('削除しますか？');"
+                                    aria-label="削除"
+                                    title="削除"
+                                >🗑</button>
+                            </form>
+                        </div>
                     </td>
                 </tr>
             {% endfor %}

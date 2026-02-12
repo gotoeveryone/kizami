@@ -9,9 +9,6 @@
         <a href="/clients">クライアント管理へ</a> /
         <a href="/work-categories">作業分類管理へ</a>
     </p>
-    <form method="post" action="/logout">
-        <button type="submit">ログアウト</button>
-    </form>
 
     {% if saved %}
         <article>保存しました。</article>
@@ -29,14 +26,53 @@
         {% endfor %}
     {% endif %}
 
-    <h2>稼働時間を登録</h2>
-    <form method="post" action="/time-entries">
-        <div>
+    <h2>表示条件</h2>
+    <form method="get" action="/">
+        <label for="month">対象月</label>
+        <input id="month" type="month" name="month" value="{{ filterMonth }}">
+
+        <label for="filter_client_id">クライアント</label>
+        <select id="filter_client_id" name="client_id">
+            <option value="">すべて</option>
+            {% for client in clients %}
+                <option value="{{ client.id }}" {% if filterClientId == client.id %}selected{% endif %}>
+                    {{ client.name }}
+                </option>
+            {% endfor %}
+        </select>
+
+        <button type="submit">絞り込み</button>
+    </form>
+
+    <h2>月次サマリ</h2>
+    <article>
+        <strong>{{ filterMonth }} 合計:</strong> {{ monthlyTotal }}h
+    </article>
+    {% if dailySummaries %}
+        <table>
+            <thead>
+            <tr>
+                <th>日付</th>
+                <th>合計時間</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for summary in dailySummaries %}
+                <tr>
+                    <td>{{ summary.date }}</td>
+                    <td>{{ summary.total_hours }}h</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+
+    <details>
+        <summary>稼働時間を登録</summary>
+        <form method="post" action="/time-entries">
             <label for="date">日付</label>
             <input id="date" type="date" name="date" value="{{ old.date }}" required>
-        </div>
 
-        <div>
             <label for="client_id">クライアント</label>
             <select id="client_id" name="client_id" required>
                 <option value="">選択してください</option>
@@ -46,9 +82,7 @@
                     </option>
                 {% endfor %}
             </select>
-        </div>
 
-        <div>
             <label for="work_category_id">作業分類</label>
             <select id="work_category_id" name="work_category_id" required>
                 <option value="">選択してください</option>
@@ -58,35 +92,29 @@
                     </option>
                 {% endfor %}
             </select>
-        </div>
 
-        <div>
             <label for="start_time">開始</label>
             <select id="start_time" name="start_time" required>
                 {% for time in timeOptions %}
                     <option value="{{ time }}" {% if old.start_time == time %}selected{% endif %}>{{ time }}</option>
                 {% endfor %}
             </select>
-        </div>
 
-        <div>
             <label for="end_time">終了</label>
             <select id="end_time" name="end_time" required>
                 {% for time in timeOptions %}
                     <option value="{{ time }}" {% if old.end_time == time %}selected{% endif %}>{{ time }}</option>
                 {% endfor %}
             </select>
-        </div>
 
-        <div>
             <label for="comment">コメント</label>
             <textarea id="comment" name="comment" rows="3">{{ old.comment }}</textarea>
-        </div>
 
-        <button type="submit">保存</button>
-    </form>
+            <button type="submit">保存</button>
+        </form>
+    </details>
 
-    <h2>稼働履歴</h2>
+    <h2>稼働履歴（{{ filterMonth }}）</h2>
     {% if timeEntries %}
         <table>
             <thead>
@@ -110,12 +138,26 @@
                     <td>{{ entry.start_time|slice(0, 5) }}</td>
                     <td>{{ entry.end_time|slice(0, 5) }}</td>
                     <td>{{ entry.hours }}</td>
-                    <td>{{ entry.comment }}</td>
+                    <td class="comment-cell">{{ entry.comment ?: '-' }}</td>
                     <td>
-                        <a href="/time-entries/{{ entry.id }}/edit">編集</a>
-                        <form method="post" action="/time-entries/{{ entry.id }}/delete" style="display:inline;">
-                            <button type="submit" onclick="return confirm('削除しますか？');">削除</button>
-                        </form>
+                        <div class="action-buttons">
+                            <a
+                                href="/time-entries/{{ entry.id }}/edit"
+                                role="button"
+                                class="secondary outline icon-button"
+                                aria-label="編集"
+                                title="編集"
+                            >✎</a>
+                            <form method="post" action="/time-entries/{{ entry.id }}/delete">
+                                <button
+                                    type="submit"
+                                    class="outline icon-button"
+                                    onclick="return confirm('削除しますか？');"
+                                    aria-label="削除"
+                                    title="削除"
+                                >🗑</button>
+                            </form>
+                        </div>
                     </td>
                 </tr>
             {% endfor %}

@@ -14,10 +14,21 @@ final class TimeEntryService
     ) {
     }
 
-    public function listForIndex(): array
+    public function listForPeriod(string $dateFrom, string $dateTo, ?int $clientId = null): array
     {
+        $where = 'te.date BETWEEN :date_from AND :date_to';
+        $params = [
+            'date_from' => $dateFrom,
+            'date_to' => $dateTo,
+        ];
+
+        if ($clientId !== null) {
+            $where .= ' AND te.client_id = :client_id';
+            $params['client_id'] = $clientId;
+        }
+
         return $this->entityManager->getConnection()->fetchAllAssociative(
-            'SELECT
+            "SELECT
                 te.id,
                 te.date,
                 te.start_time,
@@ -29,8 +40,32 @@ final class TimeEntryService
              FROM time_entries te
              INNER JOIN clients c ON c.id = te.client_id
              INNER JOIN work_categories wc ON wc.id = te.work_category_id
-             ORDER BY te.date DESC, te.start_time DESC, te.id DESC
-             LIMIT 200'
+             WHERE {$where}
+             ORDER BY te.date DESC, te.start_time ASC, te.id ASC",
+            $params
+        );
+    }
+
+    public function summarizeDailyForPeriod(string $dateFrom, string $dateTo, ?int $clientId = null): array
+    {
+        $where = 'te.date BETWEEN :date_from AND :date_to';
+        $params = [
+            'date_from' => $dateFrom,
+            'date_to' => $dateTo,
+        ];
+
+        if ($clientId !== null) {
+            $where .= ' AND te.client_id = :client_id';
+            $params['client_id'] = $clientId;
+        }
+
+        return $this->entityManager->getConnection()->fetchAllAssociative(
+            "SELECT te.date, SUM(te.hours) AS total_hours
+             FROM time_entries te
+             WHERE {$where}
+             GROUP BY te.date
+             ORDER BY te.date DESC",
+            $params
         );
     }
 

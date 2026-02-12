@@ -8,9 +8,6 @@
         <a href="/">稼働時間画面へ戻る</a> /
         <a href="/work-categories">作業分類管理へ</a>
     </p>
-    <form method="post" action="/logout">
-        <button type="submit">ログアウト</button>
-    </form>
 
     {% if saved %}
         <article>保存しました。</article>
@@ -49,8 +46,6 @@
                 <th>ID</th>
                 <th>クライアント名</th>
                 <th>表示順</th>
-                <th>作成</th>
-                <th>更新</th>
                 <th>操作</th>
             </tr>
             </thead>
@@ -60,13 +55,25 @@
                     <td>{{ client.id }}</td>
                     <td>{{ client.name }}</td>
                     <td>{{ client.sort_order }}</td>
-                    <td>{{ client.created }}</td>
-                    <td>{{ client.modified }}</td>
                     <td>
-                        <a href="/clients/{{ client.id }}/edit">編集</a>
-                        <form method="post" action="/clients/{{ client.id }}/delete">
-                            <button type="submit" onclick="return confirm('削除しますか？');">削除</button>
-                        </form>
+                        <div class="action-buttons">
+                            <a
+                                href="/clients/{{ client.id }}/edit"
+                                role="button"
+                                class="secondary outline icon-button"
+                                aria-label="編集"
+                                title="編集"
+                            >✎</a>
+                            <form method="post" action="/clients/{{ client.id }}/delete">
+                                <button
+                                    type="submit"
+                                    class="outline icon-button"
+                                    onclick="return confirm('削除しますか？');"
+                                    aria-label="削除"
+                                    title="削除"
+                                >🗑</button>
+                            </form>
+                        </div>
                     </td>
                 </tr>
             {% endfor %}

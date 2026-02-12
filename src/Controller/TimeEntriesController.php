@@ -131,12 +131,32 @@ final class TimeEntriesController
         int $status = 200,
     ): Response {
         $query = $request->getQueryParams();
+        $month = (string) ($query['month'] ?? date('Y-m'));
+        if (!preg_match('/^\d{4}-(0[1-9]|1[0-2])$/', $month)) {
+            $month = date('Y-m');
+        }
+        $periodStart = $month . '-01';
+        $periodEnd = date('Y-m-t', strtotime($periodStart));
+
+        $clientFilterRaw = trim((string) ($query['client_id'] ?? ''));
+        $clientFilter = ctype_digit($clientFilterRaw) && $clientFilterRaw !== ''
+            ? (int) $clientFilterRaw
+            : null;
+
+        $timeEntries = $this->timeEntryService->listForPeriod($periodStart, $periodEnd, $clientFilter);
+        $dailySummaries = $this->timeEntryService->summarizeDailyForPeriod($periodStart, $periodEnd, $clientFilter);
+        $monthlyTotal = 0.0;
+        foreach ($dailySummaries as $summary) {
+            $monthlyTotal += (float) $summary['total_hours'];
+        }
 
         return Twig::fromRequest($request)->render($response->withStatus($status), 'home.html.twig', [
             'title' => 'Kizami',
             'clients' => $this->clientService->listForSelect(),
             'workCategories' => $this->workCategoryService->listForSelect(),
-            'timeEntries' => $this->timeEntryService->listForIndex(),
+            'timeEntries' => $timeEntries,
+            'dailySummaries' => $dailySummaries,
+            'monthlyTotal' => round($monthlyTotal, 2),
             'timeOptions' => $this->timeEntryService->buildTimeOptions(),
             'errors' => $errors,
             'old' => $old ?? [
@@ -150,6 +170,8 @@ final class TimeEntriesController
             'saved' => isset($query['saved']),
             'updated' => isset($query['updated']),
             'deleted' => isset($query['deleted']),
+            'filterMonth' => $month,
+            'filterClientId' => $clientFilterRaw,
         ]);
     }
 }
