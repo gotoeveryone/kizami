@@ -12,6 +12,7 @@
     {% endif %}
 
     <form method="post" action="/clients/{{ client.id }}">
+        {% include "partials/csrf_fields.html.twig" %}
         <div>
             <label for="name">クライアント名</label>
             <input id="name" type="text" name="name" value="{{ client.name }}" required>

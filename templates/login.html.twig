@@ -10,6 +10,7 @@
     {% endif %}
 
     <form method="post" action="/login">
+        {% include "partials/csrf_fields.html.twig" %}
         <label for="username">ユーザー名</label>
         <input id="username" type="text" name="username" required>
 

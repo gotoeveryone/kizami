@@ -12,6 +12,7 @@
     {% endif %}
 
     <form method="post" action="/time-entries/{{ entry.id }}">
+        {% include "partials/csrf_fields.html.twig" %}
         <div>
             <label for="date">日付</label>
             <input id="date" type="date" name="date" value="{{ entry.date }}" required>

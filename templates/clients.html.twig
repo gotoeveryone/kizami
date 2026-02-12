@@ -23,6 +23,7 @@
 
     <h2>新規追加</h2>
     <form method="post" action="/clients">
+        {% include "partials/csrf_fields.html.twig" %}
         <div>
             <label for="name">クライアント名</label>
             <input id="name" type="text" name="name" value="{{ old.name }}" required>
@@ -61,6 +62,7 @@
                                 title="編集"
                             >✎</a>
                             <form method="post" action="/clients/{{ client.id }}/delete">
+                                {% include "partials/csrf_fields.html.twig" %}
                                 <button
                                     type="submit"
                                     class="outline icon-button"

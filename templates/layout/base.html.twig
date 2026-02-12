@@ -188,6 +188,7 @@
                 <a href="/work-categories">作業分類</a>
             </div>
             <form method="post" action="/logout">
+                {% include "partials/csrf_fields.html.twig" %}
                 <button type="submit" class="logout-compact">ログアウト</button>
             </form>
         </header>

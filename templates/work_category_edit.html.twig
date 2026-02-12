@@ -12,6 +12,7 @@
     {% endif %}
 
     <form method="post" action="/work-categories/{{ workCategory.id }}">
+        {% include "partials/csrf_fields.html.twig" %}
         <label for="name">作業分類名</label>
         <input id="name" type="text" name="name" value="{{ workCategory.name }}" required>
 

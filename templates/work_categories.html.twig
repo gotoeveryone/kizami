@@ -23,6 +23,7 @@
 
     <h2>新規追加</h2>
     <form method="post" action="/work-categories">
+        {% include "partials/csrf_fields.html.twig" %}
         <label for="name">作業分類名</label>
         <input id="name" type="text" name="name" value="{{ old.name }}" required>
 
@@ -59,6 +60,7 @@
                                 title="編集"
                             >✎</a>
                             <form method="post" action="/work-categories/{{ workCategory.id }}/delete">
+                                {% include "partials/csrf_fields.html.twig" %}
                                 <button
                                     type="submit"
                                     class="outline icon-button"
