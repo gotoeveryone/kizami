@@ -30,6 +30,28 @@ docker compose run --rm app php bin/doctrine migrations:migrate -n
 
 - ブラウザで `http://localhost:8080` を開く
 
+## コードチェック
+
+- `php-cs-fixer`（整形/フォーマット）
+- `phpstan`（静的解析）
+- `phpunit`（テスト）
+
+```bash
+docker compose run --rm --no-deps app composer cs:check
+docker compose run --rm --no-deps app composer stan
+docker compose run --rm --no-deps app composer test
+```
+
+まとめて実行:
+
+```bash
+docker compose run --rm --no-deps app composer check
+```
+
+## UIレイアウト
+
+- 軽量構成として `Pico.css` を CDN で読み込み（`templates/layout/base.html.twig`）
+
 ## 補足
 
 - `migrations/Version20260212203000.php` で以下を作成します
