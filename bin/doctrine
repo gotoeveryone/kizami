@@ -1,0 +1,78 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+use Doctrine\DBAL\DriverManager;
+use Doctrine\Migrations\Configuration\EntityManager\ExistingEntityManager;
+use Doctrine\Migrations\Configuration\Migration\PhpFile;
+use Doctrine\Migrations\DependencyFactory;
+use Doctrine\Migrations\Tools\Console\Command as MigrationsCommand;
+use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\ORMSetup;
+use Doctrine\ORM\Tools\Console\ConsoleRunner;
+use Doctrine\ORM\Tools\Console\EntityManagerProvider\SingleManagerProvider;
+use Symfony\Component\Cache\Adapter\ArrayAdapter;
+use Symfony\Component\Console\Application;
+
+require_once __DIR__ . '/../vendor/autoload.php';
+
+$dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/..');
+$dotenv->safeLoad();
+
+$doctrineSettings = [
+    'dev_mode' => ($_ENV['APP_ENV'] ?? 'production') !== 'production',
+    'cache_dir' => __DIR__ . '/../var/doctrine',
+    'metadata_dirs' => [__DIR__ . '/../src/Domain/Entity'],
+    'connection' => [
+        'driver' => 'pdo_mysql',
+        'host' => $_ENV['DB_HOST'] ?? 'localhost',
+        'port' => (int) ($_ENV['DB_PORT'] ?? 3306),
+        'dbname' => $_ENV['DB_NAME'] ?? 'kizami',
+        'user' => $_ENV['DB_USER'] ?? 'kizami',
+        'password' => $_ENV['DB_PASSWORD'] ?? 'kizami',
+        'charset' => 'utf8mb4',
+    ],
+];
+
+$cache = new ArrayAdapter();
+$config = ORMSetup::createAttributeMetadataConfiguration(
+    paths: $doctrineSettings['metadata_dirs'],
+    isDevMode: $doctrineSettings['dev_mode'],
+    cache: $cache,
+);
+$config->enableNativeLazyObjects(true);
+$connection = DriverManager::getConnection($doctrineSettings['connection']);
+$entityManager = new EntityManager($connection, $config);
+
+// Symfony Console Application
+$application = new Application('Kizami Doctrine CLI');
+
+// ORM コマンド登録
+$entityManagerProvider = new SingleManagerProvider($entityManager);
+ConsoleRunner::addCommands($application, $entityManagerProvider);
+
+// Migrations コマンド登録
+$migrationConfig = new PhpFile(__DIR__ . '/../config/migrations.php');
+$dependencyFactory = DependencyFactory::fromEntityManager(
+    $migrationConfig,
+    new ExistingEntityManager($entityManager),
+);
+
+$application->addCommands([
+    new MigrationsCommand\CurrentCommand($dependencyFactory),
+    new MigrationsCommand\DiffCommand($dependencyFactory),
+    new MigrationsCommand\DumpSchemaCommand($dependencyFactory),
+    new MigrationsCommand\ExecuteCommand($dependencyFactory),
+    new MigrationsCommand\GenerateCommand($dependencyFactory),
+    new MigrationsCommand\LatestCommand($dependencyFactory),
+    new MigrationsCommand\ListCommand($dependencyFactory),
+    new MigrationsCommand\MigrateCommand($dependencyFactory),
+    new MigrationsCommand\RollupCommand($dependencyFactory),
+    new MigrationsCommand\StatusCommand($dependencyFactory),
+    new MigrationsCommand\SyncMetadataCommand($dependencyFactory),
+    new MigrationsCommand\UpToDateCommand($dependencyFactory),
+    new MigrationsCommand\VersionCommand($dependencyFactory),
+]);
+
+$application->run();
