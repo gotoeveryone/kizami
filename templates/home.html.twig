@@ -46,7 +46,7 @@
         <strong>{{ filterDateFrom }} 〜 {{ filterDateTo }} 合計:</strong> {{ monthlyTotal }}h
     </article>
 
-    <details class="register-panel">
+    <details class="register-panel" {% if errors %}open{% endif %}>
         <summary>
             <span class="closed-label">＋ 稼働時間を登録（クリックで開く）</span>
             <span class="open-label">− 稼働時間を登録（クリックで閉じる）</span>
