@@ -40,6 +40,11 @@ return function (ContainerBuilder $containerBuilder): void {
                 'session_key' => 'kizami_user',
                 'admin_username' => $_ENV['APP_ADMIN_USERNAME'] ?? null,
                 'admin_password' => $_ENV['APP_ADMIN_PASSWORD'] ?? null,
+                'rate_limit' => [
+                    'max_attempts' => (int) ($_ENV['APP_AUTH_MAX_ATTEMPTS'] ?? 5),
+                    'window_seconds' => (int) ($_ENV['APP_AUTH_WINDOW_SECONDS'] ?? 300),
+                    'lock_seconds' => (int) ($_ENV['APP_AUTH_LOCK_SECONDS'] ?? 600),
+                ],
             ],
         ],
     ]);

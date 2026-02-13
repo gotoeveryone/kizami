@@ -14,6 +14,30 @@ require __DIR__ . '/../vendor/autoload.php';
 $dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/..');
 $dotenv->safeLoad();
 
+ini_set('session.use_strict_mode', '1');
+ini_set('session.use_only_cookies', '1');
+ini_set('session.cookie_httponly', '1');
+
+$isHttpsRequest = (
+    (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+    || (($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https')
+);
+$sessionSecure = filter_var(
+    $_ENV['APP_SESSION_COOKIE_SECURE'] ?? (($_ENV['APP_ENV'] ?? 'production') === 'production' || $isHttpsRequest),
+    FILTER_VALIDATE_BOOL
+);
+$sessionSameSite = (string) ($_ENV['APP_SESSION_COOKIE_SAMESITE'] ?? 'Lax');
+if (!in_array($sessionSameSite, ['Lax', 'Strict', 'None'], true)) {
+    $sessionSameSite = 'Lax';
+}
+session_set_cookie_params([
+    'lifetime' => 0,
+    'path' => '/',
+    'secure' => $sessionSecure,
+    'httponly' => true,
+    'samesite' => $sessionSameSite,
+]);
+
 if (session_status() !== PHP_SESSION_ACTIVE) {
     session_start();
 }
