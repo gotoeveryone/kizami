@@ -50,6 +50,7 @@ final class ClientsController
                 'id' => (string) $client['id'],
                 'name' => (string) $client['name'],
                 'sort_order' => (string) $client['sort_order'],
+                'is_visible' => (bool) $client['is_visible'],
             ],
             'errors' => [],
         ]);
@@ -58,7 +59,8 @@ final class ClientsController
     public function update(Request $request, Response $response): Response
     {
         $id = (int) ($request->getAttribute('id') ?? 0);
-        if (!$this->clientService->has($id)) {
+        $existingClient = $this->clientService->findById($id);
+        if ($existingClient === null) {
             $response->getBody()->write('client not found');
 
             return $response->withStatus(404);
@@ -66,6 +68,7 @@ final class ClientsController
 
         $client = $this->clientService->normalizeInput((array) $request->getParsedBody());
         $client['id'] = (string) $id;
+        $client['is_visible'] = $existingClient['is_visible'] ? '1' : '0';
         $errors = $this->clientService->validate($client);
         if ($errors !== []) {
             return Twig::fromRequest($request)->render($response->withStatus(422), 'client_edit.html.twig', [
@@ -80,20 +83,20 @@ final class ClientsController
         return $response->withHeader('Location', '/clients?updated=1')->withStatus(302);
     }
 
-    public function delete(Request $request, Response $response): Response
+    public function hide(Request $request, Response $response): Response
     {
         $id = (int) ($request->getAttribute('id') ?? 0);
-        if (!$this->clientService->delete($id)) {
-            return $this->renderClients(
-                $request,
-                $response,
-                ['このクライアントは稼働時間に紐づいているため削除できません。'],
-                null,
-                409
-            );
-        }
+        $this->clientService->hide($id);
 
-        return $response->withHeader('Location', '/clients?deleted=1')->withStatus(302);
+        return $response->withHeader('Location', '/clients?hidden=1')->withStatus(302);
+    }
+
+    public function show(Request $request, Response $response): Response
+    {
+        $id = (int) ($request->getAttribute('id') ?? 0);
+        $this->clientService->show($id);
+
+        return $response->withHeader('Location', '/clients?shown=1&show_hidden=1')->withStatus(302);
     }
 
     private function renderClients(
@@ -104,15 +107,18 @@ final class ClientsController
         int $status = 200,
     ): Response {
         $query = $request->getQueryParams();
+        $showHidden = (string) ($query['show_hidden'] ?? '') === '1';
 
         return Twig::fromRequest($request)->render($response->withStatus($status), 'clients.html.twig', [
             'title' => 'クライアント管理',
-            'clients' => $this->clientService->listAll(),
+            'clients' => $this->clientService->listAll($showHidden),
             'errors' => $errors,
-            'old' => $old ?? ['name' => '', 'sort_order' => '0'],
+            'old' => $old ?? ['name' => '', 'sort_order' => '0', 'is_visible' => '1'],
             'saved' => isset($query['saved']),
             'updated' => isset($query['updated']),
-            'deleted' => isset($query['deleted']),
+            'hidden' => isset($query['hidden']),
+            'shown' => isset($query['shown']),
+            'showHidden' => $showHidden,
         ]);
     }
 }

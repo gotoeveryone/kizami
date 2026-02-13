@@ -55,6 +55,15 @@ final class TimeEntriesController
 
             return $response->withStatus(404);
         }
+        if (!$this->clientService->isVisible((int) $entry['client_id'])) {
+            return $this->renderHome(
+                $request,
+                $response,
+                ['非表示クライアントなので編集できません。'],
+                null,
+                422
+            );
+        }
 
         return Twig::fromRequest($request)->render($response, 'time_entry_edit.html.twig', [
             'title' => '稼働時間を編集',

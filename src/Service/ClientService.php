@@ -6,7 +6,6 @@ namespace App\Service;
 
 use App\Domain\Entity\Client;
 use Doctrine\ORM\EntityManagerInterface;
-use Throwable;
 
 final class ClientService
 {
@@ -15,19 +14,26 @@ final class ClientService
     ) {
     }
 
-    public function listAll(): array
+    public function listAll(bool $includeHidden = false): array
     {
-        $clients = $this->entityManager->getRepository(Client::class)
+        $queryBuilder = $this->entityManager->getRepository(Client::class)
             ->createQueryBuilder('c')
             ->orderBy('c.sortOrder', 'ASC')
-            ->addOrderBy('c.id', 'ASC')
-            ->getQuery()
-            ->getResult();
+            ->addOrderBy('c.id', 'ASC');
+
+        if (!$includeHidden) {
+            $queryBuilder
+                ->where('c.isVisible = :is_visible')
+                ->setParameter('is_visible', true);
+        }
+
+        $clients = $queryBuilder->getQuery()->getResult();
 
         return array_map(static fn (Client $client): array => [
             'id' => $client->getId(),
             'name' => $client->getName(),
             'sort_order' => $client->getSortOrder(),
+            'is_visible' => $client->isVisible(),
         ], $clients);
     }
 
@@ -36,6 +42,8 @@ final class ClientService
         $clients = $this->entityManager->getRepository(Client::class)
             ->createQueryBuilder('c')
             ->select('c')
+            ->where('c.isVisible = :is_visible')
+            ->setParameter('is_visible', true)
             ->orderBy('c.sortOrder', 'ASC')
             ->addOrderBy('c.id', 'ASC')
             ->getQuery()
@@ -58,6 +66,7 @@ final class ClientService
             'id' => $client->getId(),
             'name' => $client->getName(),
             'sort_order' => $client->getSortOrder(),
+            'is_visible' => $client->isVisible(),
         ];
     }
 
@@ -71,6 +80,7 @@ final class ClientService
         return [
             'name' => trim((string) ($data['name'] ?? '')),
             'sort_order' => trim((string) ($data['sort_order'] ?? '0')),
+            'is_visible' => ($data['is_visible'] ?? '') === '1' ? '1' : '0',
         ];
     }
 
@@ -83,6 +93,9 @@ final class ClientService
         if (!preg_match('/^-?\d+$/', (string) ($client['sort_order'] ?? ''))) {
             $errors[] = '表示順は整数で入力してください。';
         }
+        if (!in_array((string) ($client['is_visible'] ?? '0'), ['0', '1'], true)) {
+            $errors[] = '表示設定が不正です。';
+        }
 
         return $errors;
     }
@@ -93,6 +106,7 @@ final class ClientService
             (string) $client['name'],
             (int) $client['sort_order']
         );
+        $entity->setIsVisible(((string) $client['is_visible']) === '1');
         $this->entityManager->persist($entity);
         $this->entityManager->flush();
     }
@@ -106,23 +120,36 @@ final class ClientService
 
         $entity->setName((string) $client['name']);
         $entity->setSortOrder((int) $client['sort_order']);
+        $entity->setIsVisible(((string) $client['is_visible']) === '1');
         $this->entityManager->flush();
     }
 
-    public function delete(int $id): bool
+    public function isVisible(int $id): bool
+    {
+        $entity = $this->entityManager->find(Client::class, $id);
+
+        return $entity instanceof Client && $entity->isVisible();
+    }
+
+    public function hide(int $id): void
     {
         $entity = $this->entityManager->find(Client::class, $id);
         if (!$entity instanceof Client) {
-            return true;
+            return;
         }
 
-        try {
-            $this->entityManager->remove($entity);
-            $this->entityManager->flush();
-        } catch (Throwable) {
-            return false;
+        $entity->setIsVisible(false);
+        $this->entityManager->flush();
+    }
+
+    public function show(int $id): void
+    {
+        $entity = $this->entityManager->find(Client::class, $id);
+        if (!$entity instanceof Client) {
+            return;
         }
 
-        return true;
+        $entity->setIsVisible(true);
+        $this->entityManager->flush();
     }
 }

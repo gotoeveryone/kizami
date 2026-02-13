@@ -25,6 +25,9 @@ class Client
     #[ORM\Column(name: 'sort_order', type: 'integer', options: ['default' => 0])]
     private int $sortOrder = 0;
 
+    #[ORM\Column(name: 'is_visible', type: 'boolean', options: ['default' => true])]
+    private bool $isVisible = true;
+
     #[ORM\Column(type: 'datetime_immutable')]
     private DateTimeImmutable $created;
 
@@ -79,6 +82,16 @@ class Client
     public function setSortOrder(int $sortOrder): void
     {
         $this->sortOrder = $sortOrder;
+    }
+
+    public function isVisible(): bool
+    {
+        return $this->isVisible;
+    }
+
+    public function setIsVisible(bool $isVisible): void
+    {
+        $this->isVisible = $isVisible;
     }
 
     public function getCreated(): DateTimeImmutable

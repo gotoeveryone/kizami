@@ -11,8 +11,11 @@
     {% if updated %}
         <article>更新しました。</article>
     {% endif %}
-    {% if deleted %}
-        <article>削除しました。</article>
+    {% if hidden %}
+        <article>非表示にしました。</article>
+    {% endif %}
+    {% if shown %}
+        <article>再表示しました。</article>
     {% endif %}
 
     {% if errors %}
@@ -32,26 +35,33 @@
             <label for="sort_order">表示順</label>
             <input id="sort_order" type="number" name="sort_order" value="{{ old.sort_order }}" required>
         </div>
+        <label>
+            <input type="checkbox" name="is_visible" value="1" {% if old.is_visible == '1' %}checked{% endif %}>
+            表示する
+        </label>
         <button type="submit">追加</button>
     </form>
 
     <h2>一覧</h2>
+    <form method="get" action="/clients">
+        <label>
+            <input type="checkbox" name="show_hidden" value="1" {% if showHidden %}checked{% endif %}>
+            非表示クライアントを表示
+        </label>
+        <button type="submit" class="secondary">適用</button>
+    </form>
     {% if clients %}
         <table>
             <thead>
             <tr>
-                <th>ID</th>
                 <th>クライアント名</th>
-                <th>表示順</th>
                 <th>操作</th>
             </tr>
             </thead>
             <tbody>
             {% for client in clients %}
                 <tr>
-                    <td>{{ client.id }}</td>
                     <td>{{ client.name }}</td>
-                    <td>{{ client.sort_order }}</td>
                     <td>
                         <div class="action-buttons">
                             <a
@@ -61,16 +71,41 @@
                                 aria-label="編集"
                                 title="編集"
                             >✎</a>
-                            <form method="post" action="/clients/{{ client.id }}/delete">
+                            {% if client.is_visible %}
+                            <form method="post" action="/clients/{{ client.id }}/hide">
                                 {% include "partials/csrf_fields.html.twig" %}
                                 <button
                                     type="submit"
                                     class="outline icon-button"
-                                    onclick="return confirm('削除しますか？');"
-                                    aria-label="削除"
-                                    title="削除"
-                                >🗑</button>
+                                    onclick="return confirm('非表示にしますか？');"
+                                    aria-label="非表示"
+                                    title="非表示"
+                                >
+                                    <svg class="icon-svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                                        <path d="M3 3l18 18"></path>
+                                        <path d="M10.7 6.2A10.3 10.3 0 0 1 12 6c5 0 9.3 3 11 6-0.5 0.9-1.2 1.8-2 2.6"></path>
+                                        <path d="M6.4 6.4C4.5 7.6 3 9.3 2 12c1.7 3 6 6 10 6 1.7 0 3.3-0.4 4.8-1.2"></path>
+                                        <path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"></path>
+                                    </svg>
+                                </button>
                             </form>
+                            {% else %}
+                            <form method="post" action="/clients/{{ client.id }}/show">
+                                {% include "partials/csrf_fields.html.twig" %}
+                                <button
+                                    type="submit"
+                                    class="outline icon-button"
+                                    onclick="return confirm('再表示しますか？');"
+                                    aria-label="再表示"
+                                    title="再表示"
+                                >
+                                    <svg class="icon-svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                                        <path d="M2 12c1.7-3 6-6 10-6s8.3 3 10 6c-1.7 3-6 6-10 6s-8.3-3-10-6z"></path>
+                                        <circle cx="12" cy="12" r="3"></circle>
+                                    </svg>
+                                </button>
+                            </form>
+                            {% endif %}
                         </div>
                     </td>
                 </tr>

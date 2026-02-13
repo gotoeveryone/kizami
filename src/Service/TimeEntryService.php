@@ -126,10 +126,7 @@ final class TimeEntryService
 
     public function create(array $entry): void
     {
-        $client = $this->entityManager->find(Client::class, (int) $entry['client_id']);
-        if (!$client instanceof Client) {
-            throw new InvalidArgumentException('クライアントが存在しません。');
-        }
+        $client = $this->findVisibleClient((int) $entry['client_id']);
 
         $workCategory = $this->entityManager->find(WorkCategory::class, (int) $entry['work_category_id']);
         if (!$workCategory instanceof WorkCategory) {
@@ -155,10 +152,11 @@ final class TimeEntryService
             return;
         }
 
-        $client = $this->entityManager->find(Client::class, (int) $entry['client_id']);
-        if (!$client instanceof Client) {
-            throw new InvalidArgumentException('クライアントが存在しません。');
+        if (!$timeEntry->getClient()->isVisible()) {
+            throw new InvalidArgumentException('非表示クライアントなので編集できません。');
         }
+
+        $client = $this->findVisibleClient((int) $entry['client_id']);
 
         $workCategory = $this->entityManager->find(WorkCategory::class, (int) $entry['work_category_id']);
         if (!$workCategory instanceof WorkCategory) {
@@ -233,5 +231,18 @@ final class TimeEntryService
         }
 
         return $parsed;
+    }
+
+    private function findVisibleClient(int $clientId): Client
+    {
+        $client = $this->entityManager->find(Client::class, $clientId);
+        if (!$client instanceof Client) {
+            throw new InvalidArgumentException('クライアントが存在しません。');
+        }
+        if (!$client->isVisible()) {
+            throw new InvalidArgumentException('非表示クライアントなので編集できません。');
+        }
+
+        return $client;
     }
 }

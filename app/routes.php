@@ -24,7 +24,8 @@ return function (App $app): void {
     $app->post('/clients', ClientsController::class . ':store');
     $app->get('/clients/{id}/edit', ClientsController::class . ':edit');
     $app->post('/clients/{id}', ClientsController::class . ':update');
-    $app->post('/clients/{id}/delete', ClientsController::class . ':delete');
+    $app->post('/clients/{id}/hide', ClientsController::class . ':hide');
+    $app->post('/clients/{id}/show', ClientsController::class . ':show');
 
     $app->get('/work-categories', WorkCategoriesController::class . ':index');
     $app->post('/work-categories', WorkCategoriesController::class . ':store');

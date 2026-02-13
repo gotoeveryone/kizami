@@ -38,18 +38,14 @@
         <table>
             <thead>
             <tr>
-                <th>ID</th>
                 <th>作業分類名</th>
-                <th>表示順</th>
                 <th>操作</th>
             </tr>
             </thead>
             <tbody>
             {% for workCategory in workCategories %}
                 <tr>
-                    <td>{{ workCategory.id }}</td>
                     <td>{{ workCategory.name }}</td>
-                    <td>{{ workCategory.sort_order }}</td>
                     <td>
                         <div class="action-buttons">
                             <a
