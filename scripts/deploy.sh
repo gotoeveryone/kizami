@@ -2,13 +2,14 @@
 
 set -Eeuo pipefail
 
-if [[ $# -ne 2 ]]; then
-  echo "Usage: $0 <tar_name> <project>" >&2
+if [[ $# -ne 3 ]]; then
+  echo "Usage: $0 <tar_name> <project> <target_path>" >&2
   exit 1
 fi
 
 readonly TAR_NAME="$1"
 readonly PROJECT="$2"
+readonly TARGET_PATH="$3"
 readonly HOME_TAR_PATH="${HOME}/${TAR_NAME}"
 readonly RELEASE_BASE="${HOME}/release"
 readonly WORK_DIR="${RELEASE_BASE}/link/${PROJECT}"
@@ -16,7 +17,6 @@ readonly DEPLOY_SEQ="$(date +'%Y%m%d-%H%M%S')"
 readonly WWW_DIR="${WORK_DIR}/${DEPLOY_SEQ}"
 readonly LOG_DIR="${RELEASE_BASE}/logs/${PROJECT}"
 readonly ENV_FILE_PATH="${RELEASE_BASE}/environment/${PROJECT}/.env"
-readonly TARGET_PATH="${HOME}/k2ss.info/public_html/${PROJECT}"
 readonly KEEP_RELEASES=3
 
 log() {

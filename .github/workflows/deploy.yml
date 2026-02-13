@@ -11,6 +11,7 @@ jobs:
     env:
       TAR_NAME: "kizami_${{ github.run_number }}.tar.gz"
       SHELL_DEST_PATH: "~/deploy_${{ github.run_number }}.sh"
+      DEPLOY_TARGET_PATH: ${{ secrets.DEPLOY_TARGET_PATH }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -37,7 +38,12 @@ jobs:
           scp -r ~/${TAR_NAME} target:~/
           scp ./scripts/deploy.sh target:${SHELL_DEST_PATH}
       - name: Deploy modules
-        run: ssh target "${SHELL_DEST_PATH} ${TAR_NAME} kizami && rm -f ${SHELL_DEST_PATH}"
+        run: |
+          if [ -z "${DEPLOY_TARGET_PATH}" ]; then
+            echo "DEPLOY_TARGET_PATH is not set"
+            exit 1
+          fi
+          ssh target "${SHELL_DEST_PATH} ${TAR_NAME} kizami '${DEPLOY_TARGET_PATH}' && rm -f ${SHELL_DEST_PATH}"
 
   notify:
     if: ${{ always() && needs.deploy.result != 'skipped' }}
