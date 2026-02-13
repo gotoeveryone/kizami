@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 use DI\Bridge\Slim\Bridge;
 use DI\ContainerBuilder;
+use Psr\Http\Message\ResponseInterface as Response;
+use Psr\Http\Message\ServerRequestInterface as Request;
+use Slim\Exception\HttpNotFoundException;
+use Slim\Views\Twig;
 
 require __DIR__ . '/../vendor/autoload.php';
 
@@ -44,6 +48,27 @@ $routes($app);
 $displayErrorDetails = (bool) ($container->get('settings')['slim']['displayErrorDetails'] ?? false);
 $app->addRoutingMiddleware();
 $app->addBodyParsingMiddleware();
-$app->addErrorMiddleware($displayErrorDetails, true, true);
+$errorMiddleware = $app->addErrorMiddleware($displayErrorDetails, true, true);
+$errorMiddleware->setErrorHandler(HttpNotFoundException::class, function (
+    Request $request,
+    Throwable $exception,
+    bool $displayErrorDetails,
+    bool $logErrors,
+    bool $logErrorDetails,
+) use ($container, $app): Response {
+    if (str_starts_with($request->getUri()->getPath(), '/api/')) {
+        $response = $app->getResponseFactory()->createResponse(404);
+        $response->getBody()->write(json_encode(['error' => 'Not Found'], JSON_UNESCAPED_UNICODE));
+
+        return $response->withHeader('Content-Type', 'application/json');
+    }
+
+    $response = $app->getResponseFactory()->createResponse(404);
+
+    return $container->get(Twig::class)->render($response, 'errors/404.html.twig', [
+        'title' => '404 Not Found',
+        'hideTopNav' => false,
+    ]);
+});
 
 $app->run();
