@@ -33,7 +33,9 @@ docker compose run --rm app php bin/doctrine migrations:migrate -n
 ## 認証
 
 - 画面: セッション認証
-  - `.env` の `APP_ADMIN_USERNAME` / `APP_ADMIN_PASSWORD` を利用
+  - `.env` の `APP_ADMIN_USERNAME` / `APP_ADMIN_PASSWORD_HASH` を利用
+  - `APP_ADMIN_PASSWORD_HASH` は `password_hash` で生成したハッシュ文字列
+    - 生成例: `php -r "echo password_hash('your-password', PASSWORD_DEFAULT) . PHP_EOL;"`
   - いずれか未設定（空含む）の場合、ログイン不可
   - ログイン試行制限（デフォルト: 5回失敗で10分ロック）
     - `APP_AUTH_MAX_ATTEMPTS`

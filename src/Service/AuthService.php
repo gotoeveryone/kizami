@@ -19,16 +19,13 @@ final class AuthService
     {
         $auth = $this->settings['auth'];
         $configuredUsername = trim((string) ($auth['admin_username'] ?? ''));
-        $configuredPassword = (string) ($auth['admin_password'] ?? '');
+        $configuredPasswordHash = trim((string) ($auth['admin_password_hash'] ?? ''));
 
-        if ($configuredUsername === '' || $configuredPassword === '') {
+        if ($configuredUsername === '' || $configuredPasswordHash === '') {
             return false;
         }
 
-        if (
-            hash_equals($configuredUsername, $username)
-            && hash_equals($configuredPassword, $password)
-        ) {
+        if (hash_equals($configuredUsername, $username) && password_verify($password, $configuredPasswordHash)) {
             $_SESSION[(string) $auth['session_key']] = $username;
 
             return true;

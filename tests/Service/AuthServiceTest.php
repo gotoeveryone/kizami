@@ -49,7 +49,7 @@ final class AuthServiceTest extends TestCase
     #[Test]
     public function attemptLoginShouldFailWhenCredentialsAreNotConfigured(): void
     {
-        $service = $this->createService(adminUsername: '', adminPassword: '');
+        $service = $this->createService(adminUsername: '', adminPasswordHash: '');
 
         $success = $service->attemptLogin('admin', 'password');
 
@@ -84,8 +84,12 @@ final class AuthServiceTest extends TestCase
     private function createService(
         int $apiKeyCount = 0,
         string $adminUsername = 'admin',
-        string $adminPassword = 'password',
+        string $adminPasswordHash = '',
     ): AuthService {
+        if ($adminPasswordHash === '') {
+            $adminPasswordHash = password_hash('password', PASSWORD_DEFAULT);
+        }
+
         $query = $this->createMock(Query::class);
         $query->method('getSingleScalarResult')->willReturn($apiKeyCount);
 
@@ -106,7 +110,7 @@ final class AuthServiceTest extends TestCase
                 'auth' => [
                     'session_key' => self::SESSION_KEY,
                     'admin_username' => $adminUsername,
-                    'admin_password' => $adminPassword,
+                    'admin_password_hash' => $adminPasswordHash,
                 ],
             ]
         );
