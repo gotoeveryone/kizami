@@ -18,6 +18,10 @@ return function (App $app): void {
     $app->add(TwigMiddleware::create($app, $twig));
     $app->add($container->get(AuthMiddleware::class));
     $app->add(function (Request $request, RequestHandlerInterface $handler) use ($guard, $twig) {
+        if (str_starts_with($request->getUri()->getPath(), '/api/')) {
+            return $handler->handle($request);
+        }
+
         $nameKey = $guard->getTokenNameKey();
         $valueKey = $guard->getTokenValueKey();
 
@@ -32,5 +36,11 @@ return function (App $app): void {
 
         return $handler->handle($request);
     });
-    $app->add($guard);
+    $app->add(function (Request $request, RequestHandlerInterface $handler) use ($guard) {
+        if (str_starts_with($request->getUri()->getPath(), '/api/')) {
+            return $handler->handle($request);
+        }
+
+        return $guard->process($request, $handler);
+    });
 };

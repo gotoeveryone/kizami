@@ -76,7 +76,7 @@ final class LoginRateLimiter
      */
     private function getRecord(string $key): ?array
     {
-        $data = $this->loadData();
+        $data = $this->readLockedData();
         $now = time();
         $this->cleanupExpired($data, $now);
 
@@ -151,20 +151,29 @@ final class LoginRateLimiter
     /**
      * @return array<string,mixed>
      */
-    private function loadData(): array
+    private function readLockedData(): array
     {
         if (!file_exists($this->storagePath)) {
             return [];
         }
 
-        $json = file_get_contents($this->storagePath);
-        if ($json === false || $json === '') {
-            return [];
+        $handle = fopen($this->storagePath, 'r');
+        if ($handle === false) {
+            throw new RuntimeException('failed to open rate limiter storage');
         }
 
-        $decoded = json_decode($json, true);
+        try {
+            if (!flock($handle, LOCK_SH)) {
+                throw new RuntimeException('failed to lock rate limiter storage');
+            }
 
-        return is_array($decoded) ? $decoded : [];
+            $data = $this->readFromHandle($handle);
+            flock($handle, LOCK_UN);
+        } finally {
+            fclose($handle);
+        }
+
+        return $data;
     }
 
     /**
