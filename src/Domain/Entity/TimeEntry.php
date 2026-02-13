@@ -127,19 +127,6 @@ class TimeEntry
         return $this->hours;
     }
 
-    public function setHours(float $hours): void
-    {
-        $this->assertQuarterHourIncrement($hours);
-        if (isset($this->startTime, $this->endTime)) {
-            $expected = $this->calculateHoursFromTimes();
-            if (abs($hours - $expected) > 0.0001) {
-                throw new InvalidArgumentException('工数は開始時刻・終了時刻から自動算出されます。');
-            }
-        }
-
-        $this->hours = number_format($hours, 2, '.', '');
-    }
-
     public function getComment(): ?string
     {
         return $this->comment;
@@ -189,15 +176,4 @@ class TimeEntry
         }
     }
 
-    private function assertQuarterHourIncrement(float $hours): void
-    {
-        if ($hours <= 0) {
-            throw new InvalidArgumentException('工数は0より大きい値を指定してください。');
-        }
-
-        $quarterUnits = round($hours * 4);
-        if (abs(($quarterUnits / 4) - $hours) > 0.0001) {
-            throw new InvalidArgumentException('工数は0.25時間刻みで入力してください。');
-        }
-    }
 }

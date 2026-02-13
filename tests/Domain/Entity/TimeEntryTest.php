@@ -54,28 +54,4 @@ final class TimeEntryTest extends TestCase
 
         $entry->setStartTime(new DateTimeImmutable('09:10'));
     }
-
-    #[Test]
-    public function shouldRejectNonQuarterHours(): void
-    {
-        $entry = new TimeEntry();
-
-        $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('工数は0.25時間刻みで入力してください。');
-
-        $entry->setHours(1.1);
-    }
-
-    #[Test]
-    public function shouldRejectManualHoursWhenDifferentFromAutoCalculatedHours(): void
-    {
-        $entry = new TimeEntry();
-        $entry->setStartTime(new DateTimeImmutable('09:00'));
-        $entry->setEndTime(new DateTimeImmutable('10:00'));
-
-        $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('工数は開始時刻・終了時刻から自動算出されます。');
-
-        $entry->setHours(1.25);
-    }
 }
