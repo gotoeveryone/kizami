@@ -6,18 +6,18 @@
     <h1>稼働時間管理</h1>
 
     {% if saved %}
-        <article>保存しました。</article>
+        <article class="notice-success">保存しました。</article>
     {% endif %}
     {% if updated %}
-        <article>更新しました。</article>
+        <article class="notice-success">更新しました。</article>
     {% endif %}
     {% if deleted %}
-        <article>削除しました。</article>
+        <article class="notice-success">削除しました。</article>
     {% endif %}
 
     {% if errors %}
         {% for error in errors %}
-            <article>{{ error }}</article>
+            <article class="notice-error">{{ error }}</article>
         {% endfor %}
     {% endif %}
 

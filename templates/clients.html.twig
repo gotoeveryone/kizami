@@ -6,21 +6,21 @@
     <h1>クライアント管理</h1>
 
     {% if saved %}
-        <article>保存しました。</article>
+        <article class="notice-success">保存しました。</article>
     {% endif %}
     {% if updated %}
-        <article>更新しました。</article>
+        <article class="notice-success">更新しました。</article>
     {% endif %}
     {% if hidden %}
-        <article>非表示にしました。</article>
+        <article class="notice-success">非表示にしました。</article>
     {% endif %}
     {% if shown %}
-        <article>再表示しました。</article>
+        <article class="notice-success">再表示しました。</article>
     {% endif %}
 
     {% if errors %}
         {% for error in errors %}
-            <article>{{ error }}</article>
+            <article class="notice-error">{{ error }}</article>
         {% endfor %}
     {% endif %}
 
