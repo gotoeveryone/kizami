@@ -215,7 +215,7 @@ final class TimeEntryService
 
     private function parseDate(string $date): DateTimeImmutable
     {
-        $parsed = DateTimeImmutable::createFromFormat('Y-m-d', $date);
+        $parsed = DateTimeImmutable::createFromFormat('!Y-m-d', $date);
         if (!$parsed instanceof DateTimeImmutable) {
             throw new InvalidArgumentException('日付形式が不正です。');
         }
