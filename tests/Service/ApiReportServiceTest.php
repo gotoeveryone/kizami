@@ -45,6 +45,7 @@ final class ApiReportServiceTest extends TestCase
         );
         $queryBuilder->method('groupBy')->willReturnSelf();
         $queryBuilder->method('orderBy')->willReturnSelf();
+        $queryBuilder->method('addOrderBy')->willReturnSelf();
         $queryBuilder->method('getQuery')->willReturn($query);
 
         $entityManager = $this->createMock(EntityManagerInterface::class);
