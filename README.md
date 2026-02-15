@@ -82,11 +82,3 @@ docker compose run --rm --no-deps app composer check
 curl -H "Authorization: Bearer dev-api-key-change-me" \
   "http://localhost:8080/api/v1/reports/hours?date_from=2026-02-01&date_to=2026-02-28"
 ```
-
-## 補足
-
-- `migrations/Version20260212203000.php` で以下を作成します
-  - `clients`
-  - `work_categories`（初期データ: 設計作業/開発作業/コーディング/インフラ/打ち合わせ/その他）
-  - `time_entries`
-- `migrations/Version20260212230000.php` で `api_keys` を作成します
