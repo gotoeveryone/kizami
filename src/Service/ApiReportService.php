@@ -25,8 +25,9 @@ final class ApiReportService
             ->where('te.date BETWEEN :date_from AND :date_to')
             ->setParameter('date_from', $this->parseDate($dateFrom))
             ->setParameter('date_to', $this->parseDate($dateTo))
-            ->groupBy('c.id, c.name')
-            ->orderBy('c.name', 'ASC')
+            ->groupBy('c.id, c.name, c.sortOrder')
+            ->orderBy('c.sortOrder', 'ASC')
+            ->addOrderBy('c.name', 'ASC')
             ->getQuery()
             ->getArrayResult();
 
