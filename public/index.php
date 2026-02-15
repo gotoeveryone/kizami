@@ -94,5 +94,26 @@ $errorMiddleware->setErrorHandler(HttpNotFoundException::class, function (
         'hideTopNav' => false,
     ]);
 });
+$errorMiddleware->setDefaultErrorHandler(function (
+    Request $request,
+    Throwable $exception,
+    bool $displayErrorDetails,
+    bool $logErrors,
+    bool $logErrorDetails,
+) use ($container, $app): Response {
+    if (str_starts_with($request->getUri()->getPath(), '/api/')) {
+        $response = $app->getResponseFactory()->createResponse(500);
+        $response->getBody()->write(json_encode(['error' => 'Application Error'], JSON_UNESCAPED_UNICODE));
+
+        return $response->withHeader('Content-Type', 'application/json');
+    }
+
+    $response = $app->getResponseFactory()->createResponse(500);
+
+    return $container->get(Twig::class)->render($response, 'errors/500.html.twig', [
+        'title' => 'Application Error',
+        'hideTopNav' => false,
+    ]);
+});
 
 $app->run();
