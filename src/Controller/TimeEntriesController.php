@@ -56,10 +56,10 @@ final class TimeEntriesController
                 'continue_end_time' => $old['end_time'],
             ]);
 
-            return $response->withHeader('Location', '/?' . $query)->withStatus(302);
+            return $response->withHeader('Location', '/time-entries?' . $query)->withStatus(302);
         }
 
-        return $response->withHeader('Location', '/?saved=1')->withStatus(302);
+        return $response->withHeader('Location', '/time-entries?saved=1')->withStatus(302);
     }
 
     public function edit(Request $request, Response $response): Response
@@ -138,7 +138,7 @@ final class TimeEntriesController
             ]);
         }
 
-        return $response->withHeader('Location', '/?updated=1')->withStatus(302);
+        return $response->withHeader('Location', '/time-entries?updated=1')->withStatus(302);
     }
 
     public function delete(Request $request, Response $response): Response
@@ -146,7 +146,7 @@ final class TimeEntriesController
         $id = (int) ($request->getAttribute('id') ?? 0);
         $this->timeEntryService->delete($id);
 
-        return $response->withHeader('Location', '/?deleted=1')->withStatus(302);
+        return $response->withHeader('Location', '/time-entries?deleted=1')->withStatus(302);
     }
 
     private function renderHome(

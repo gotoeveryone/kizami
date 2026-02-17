@@ -1,0 +1,43 @@
+{% extends "layout/base.html.twig" %}
+
+{% block title %}Kizami - ホーム{% endblock %}
+
+{% block body %}
+    <h1>Kizami</h1>
+
+    <form method="get" action="/">
+        <label for="month">対象月</label>
+        <input id="month" type="month" name="month" value="{{ month }}">
+        <button type="submit">表示</button>
+    </form>
+
+    <article>
+        <strong>{{ monthLabel }} 合計:</strong> {{ monthlyTotal }}h
+    </article>
+
+    <div class="action-buttons">
+        <a href="/time-entries" role="button">稼働時間を管理</a>
+    </div>
+
+    <h2>クライアント別稼働時間（{{ monthLabel }}）</h2>
+    {% if clientSummaries %}
+        <table>
+            <thead>
+            <tr>
+                <th>クライアント</th>
+                <th>時間</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for summary in clientSummaries %}
+                <tr>
+                    <td>{{ summary.client_name }}</td>
+                    <td>{{ summary.total_hours }}h</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>この月の稼働時間はまだありません。</p>
+    {% endif %}
+{% endblock %}
