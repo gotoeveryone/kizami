@@ -49,11 +49,11 @@ final class TimeEntriesController
             $query = http_build_query([
                 'saved' => '1',
                 'continue_registration' => '1',
-                'date' => $old['date'],
-                'client_id' => $old['client_id'],
-                'work_category_id' => $old['work_category_id'],
-                'start_time' => $old['start_time'],
-                'end_time' => $old['end_time'],
+                'continue_date' => $old['date'],
+                'continue_client_id' => $old['client_id'],
+                'continue_work_category_id' => $old['work_category_id'],
+                'continue_start_time' => $old['start_time'],
+                'continue_end_time' => $old['end_time'],
             ]);
 
             return $response->withHeader('Location', '/?' . $query)->withStatus(302);
@@ -197,11 +197,11 @@ final class TimeEntriesController
             'comment' => '',
         ];
         if ($old === null && $continueRegistration) {
-            $form['date'] = trim((string) ($query['date'] ?? $form['date']));
-            $form['client_id'] = trim((string) ($query['client_id'] ?? $form['client_id']));
-            $form['work_category_id'] = trim((string) ($query['work_category_id'] ?? $form['work_category_id']));
-            $form['start_time'] = trim((string) ($query['start_time'] ?? $form['start_time']));
-            $form['end_time'] = trim((string) ($query['end_time'] ?? $form['end_time']));
+            $form['date'] = trim((string) ($query['continue_date'] ?? $form['date']));
+            $form['client_id'] = trim((string) ($query['continue_client_id'] ?? $form['client_id']));
+            $form['work_category_id'] = trim((string) ($query['continue_work_category_id'] ?? $form['work_category_id']));
+            $form['start_time'] = trim((string) ($query['continue_start_time'] ?? $form['start_time']));
+            $form['end_time'] = trim((string) ($query['continue_end_time'] ?? $form['end_time']));
         }
 
         return Twig::fromRequest($request)->render($response->withStatus($status), 'home.html.twig', [
