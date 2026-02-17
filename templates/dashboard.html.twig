@@ -5,39 +5,35 @@
 {% block body %}
     <h1>Kizami</h1>
 
-    <form method="get" action="/">
-        <label for="month">対象月</label>
-        <input id="month" type="month" name="month" value="{{ month }}">
-        <button type="submit">表示</button>
-    </form>
-
-    <article>
-        <strong>{{ monthLabel }} 合計:</strong> {{ monthlyTotal }}h
-    </article>
-
-    <div class="action-buttons">
-        <a href="/time-entries" role="button">稼働時間を管理</a>
-    </div>
-
-    <h2>クライアント別稼働時間（{{ monthLabel }}）</h2>
-    {% if clientSummaries %}
+    <h2>クライアント別稼働時間</h2>
+    {% if clientRows %}
         <table>
             <thead>
             <tr>
                 <th>クライアント</th>
-                <th>時間</th>
+                {% for month in months %}
+                    <th class="number-cell">{{ month.label }} (h)</th>
+                {% endfor %}
             </tr>
             </thead>
             <tbody>
-            {% for summary in clientSummaries %}
+            {% for row in clientRows %}
                 <tr>
-                    <td>{{ summary.client_name }}</td>
-                    <td>{{ summary.total_hours }}h</td>
+                    <td>{{ row.client_name }}</td>
+                    {% for month in months %}
+                        <td class="number-cell">{{ row.hours_by_month[month.key]|number_format(2, '.', '') }}</td>
+                    {% endfor %}
                 </tr>
             {% endfor %}
+            <tr>
+                <td><strong>合計</strong></td>
+                {% for month in months %}
+                    <td class="number-cell"><strong>{{ columnTotals[month.key]|number_format(2, '.', '') }}</strong></td>
+                {% endfor %}
+            </tr>
             </tbody>
         </table>
     {% else %}
-        <p>この月の稼働時間はまだありません。</p>
+        <p>直近4ヶ月の稼働時間はまだありません。</p>
     {% endif %}
 {% endblock %}
