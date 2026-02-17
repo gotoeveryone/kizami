@@ -28,7 +28,9 @@ final class TimeEntriesController
 
     public function store(Request $request, Response $response): Response
     {
-        $old = $this->timeEntryService->normalizeInput((array) $request->getParsedBody());
+        $body = (array) $request->getParsedBody();
+        $continueRegistration = (string) ($body['continue_registration'] ?? '') === '1';
+        $old = $this->timeEntryService->normalizeInput($body);
         $errors = $this->timeEntryService->validate($old);
 
         if ($errors !== []) {
@@ -41,6 +43,20 @@ final class TimeEntriesController
             $errors[] = $e->getMessage();
 
             return $this->renderHome($request, $response, $errors, $old, 422);
+        }
+
+        if ($continueRegistration) {
+            $query = http_build_query([
+                'saved' => '1',
+                'continue_registration' => '1',
+                'continue_date' => $old['date'],
+                'continue_client_id' => $old['client_id'],
+                'continue_work_category_id' => $old['work_category_id'],
+                'continue_start_time' => $old['start_time'],
+                'continue_end_time' => $old['end_time'],
+            ]);
+
+            return $response->withHeader('Location', '/?' . $query)->withStatus(302);
         }
 
         return $response->withHeader('Location', '/?saved=1')->withStatus(302);
@@ -143,6 +159,7 @@ final class TimeEntriesController
         $query = $request->getQueryParams();
         $defaultTo = date('Y-m-d');
         $defaultFrom = date('Y-m-d', strtotime('-14 days'));
+        $continueRegistration = (string) ($query['continue_registration'] ?? '') === '1';
 
         $periodStart = trim((string) ($query['date_from'] ?? $defaultFrom));
         $periodEnd = trim((string) ($query['date_to'] ?? $defaultTo));
@@ -171,6 +188,22 @@ final class TimeEntriesController
             $dailyTotalsByDate[(string) $summary['date']] = (float) $summary['total_hours'];
         }
 
+        $form = $old ?? [
+            'date' => date('Y-m-d'),
+            'client_id' => '',
+            'work_category_id' => '',
+            'start_time' => '09:00',
+            'end_time' => '10:00',
+            'comment' => '',
+        ];
+        if ($old === null && $continueRegistration) {
+            $form['date'] = trim((string) ($query['continue_date'] ?? $form['date']));
+            $form['client_id'] = trim((string) ($query['continue_client_id'] ?? $form['client_id']));
+            $form['work_category_id'] = trim((string) ($query['continue_work_category_id'] ?? $form['work_category_id']));
+            $form['start_time'] = trim((string) ($query['continue_start_time'] ?? $form['start_time']));
+            $form['end_time'] = trim((string) ($query['continue_end_time'] ?? $form['end_time']));
+        }
+
         return Twig::fromRequest($request)->render($response->withStatus($status), 'home.html.twig', [
             'title' => 'Kizami',
             'clients' => $this->clientService->listForSelect(),
@@ -181,17 +214,11 @@ final class TimeEntriesController
             'monthlyTotal' => round($monthlyTotal, 2),
             'timeOptions' => $this->timeEntryService->buildTimeOptions(),
             'errors' => $errors,
-            'old' => $old ?? [
-                'date' => date('Y-m-d'),
-                'client_id' => '',
-                'work_category_id' => '',
-                'start_time' => '09:00',
-                'end_time' => '10:00',
-                'comment' => '',
-            ],
+            'old' => $form,
             'saved' => isset($query['saved']),
             'updated' => isset($query['updated']),
             'deleted' => isset($query['deleted']),
+            'continueRegistration' => $continueRegistration,
             'filterDateFrom' => $periodStart,
             'filterDateTo' => $periodEnd,
             'filterClientId' => $clientFilterRaw,

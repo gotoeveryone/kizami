@@ -46,7 +46,7 @@
         <strong>{{ filterDateFrom }} 〜 {{ filterDateTo }} 合計:</strong> {{ monthlyTotal }}h
     </article>
 
-    <details class="register-panel" {% if errors %}open{% endif %}>
+    <details class="register-panel" {% if errors or continueRegistration %}open{% endif %}>
         <summary>
             <span class="closed-label">＋ 稼働時間を登録（クリックで開く）</span>
             <span class="open-label">− 稼働時間を登録（クリックで閉じる）</span>
@@ -93,7 +93,10 @@
             <label for="comment">コメント</label>
             <textarea id="comment" name="comment" rows="3">{{ old.comment }}</textarea>
 
-            <button type="submit">保存</button>
+            <div class="action-buttons register-actions">
+                <button type="submit">登録</button>
+                <button type="submit" name="continue_registration" value="1" class="secondary">続けて登録</button>
+            </div>
         </form>
     </details>
 
