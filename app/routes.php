@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Controller\ApiReportController;
 use App\Controller\AuthController;
 use App\Controller\ClientsController;
+use App\Controller\HomeController;
 use App\Controller\TimeEntriesController;
 use App\Controller\WorkCategoriesController;
 use Slim\App;
@@ -14,7 +15,8 @@ return function (App $app): void {
     $app->post('/login', AuthController::class . ':login');
     $app->post('/logout', AuthController::class . ':logout');
 
-    $app->get('/', TimeEntriesController::class . ':index');
+    $app->get('/', HomeController::class . ':index');
+    $app->get('/time-entries', TimeEntriesController::class . ':index');
     $app->post('/time-entries', TimeEntriesController::class . ':store');
     $app->get('/time-entries/{id}/edit', TimeEntriesController::class . ':edit');
     $app->post('/time-entries/{id}', TimeEntriesController::class . ':update');

@@ -22,7 +22,7 @@
     {% endif %}
 
     <h2>表示条件</h2>
-    <form method="get" action="/">
+    <form method="get" action="/time-entries">
         <label for="date_from">対象期間（From）</label>
         <input id="date_from" type="date" name="date_from" value="{{ filterDateFrom }}">
 
@@ -107,9 +107,9 @@
             <tr>
                 <th>クライアント</th>
                 <th>作業分類</th>
-                <th>開始</th>
-                <th>終了</th>
-                <th>時間</th>
+                <th class="number-cell">開始</th>
+                <th class="number-cell">終了</th>
+                <th class="number-cell">時間 (h)</th>
                 <th>コメント</th>
                 <th>操作</th>
             </tr>
@@ -129,9 +129,9 @@
                 <tr>
                     <td>{{ entry.client_name }}</td>
                     <td>{{ entry.work_category_name }}</td>
-                    <td>{{ entry.start_time|slice(0, 5) }}</td>
-                    <td>{{ entry.end_time|slice(0, 5) }}</td>
-                    <td>{{ entry.hours }}</td>
+                    <td class="number-cell">{{ entry.start_time|slice(0, 5) }}</td>
+                    <td class="number-cell">{{ entry.end_time|slice(0, 5) }}</td>
+                    <td class="number-cell">{{ entry.hours|number_format(2, '.', '') }}</td>
                     <td class="comment-cell">{{ entry.comment ?: '-' }}</td>
                     <td>
                         <div class="action-buttons">

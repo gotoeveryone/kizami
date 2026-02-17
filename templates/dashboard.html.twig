@@ -1,0 +1,39 @@
+{% extends "layout/base.html.twig" %}
+
+{% block title %}Kizami - ホーム{% endblock %}
+
+{% block body %}
+    <h1>Kizami</h1>
+
+    <h2>クライアント別稼働時間</h2>
+    {% if clientRows %}
+        <table>
+            <thead>
+            <tr>
+                <th>クライアント</th>
+                {% for month in months %}
+                    <th class="number-cell">{{ month.label }} (h)</th>
+                {% endfor %}
+            </tr>
+            </thead>
+            <tbody>
+            {% for row in clientRows %}
+                <tr>
+                    <td>{{ row.client_name }}</td>
+                    {% for month in months %}
+                        <td class="number-cell">{{ row.hours_by_month[month.key]|number_format(2, '.', '') }}</td>
+                    {% endfor %}
+                </tr>
+            {% endfor %}
+            <tr>
+                <td><strong>合計</strong></td>
+                {% for month in months %}
+                    <td class="number-cell"><strong>{{ columnTotals[month.key]|number_format(2, '.', '') }}</strong></td>
+                {% endfor %}
+            </tr>
+            </tbody>
+        </table>
+    {% else %}
+        <p>直近4ヶ月の稼働時間はまだありません。</p>
+    {% endif %}
+{% endblock %}
