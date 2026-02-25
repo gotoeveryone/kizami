@@ -25,7 +25,6 @@ final class AuthController
         }
 
         return Twig::fromRequest($request)->render($response, 'login.html.twig', [
-            'title' => 'ログイン',
             'error' => null,
             'hideTopNav' => true,
         ]);
@@ -42,7 +41,6 @@ final class AuthController
             $retryAfter = $this->loginRateLimiter->getRetryAfterSeconds($rateLimitKey);
 
             return Twig::fromRequest($request)->render($response->withStatus(429), 'login.html.twig', [
-                'title' => 'ログイン',
                 'error' => sprintf('ログイン試行回数が上限に達しました。%d秒後に再試行してください。', $retryAfter),
                 'hideTopNav' => true,
             ]);
@@ -58,7 +56,6 @@ final class AuthController
         $this->loginRateLimiter->registerFailure($rateLimitKey);
 
         return Twig::fromRequest($request)->render($response->withStatus(401), 'login.html.twig', [
-            'title' => 'ログイン',
             'error' => 'ログイン情報が正しくありません。',
             'hideTopNav' => true,
         ]);
