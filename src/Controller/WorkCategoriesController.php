@@ -45,7 +45,6 @@ final class WorkCategoriesController
         }
 
         return Twig::fromRequest($request)->render($response, 'work_category_edit.html.twig', [
-            'title' => '作業分類編集',
             'workCategory' => [
                 'id' => (string) $category['id'],
                 'name' => (string) $category['name'],
@@ -69,7 +68,6 @@ final class WorkCategoriesController
         $errors = $this->workCategoryService->validate($category);
         if ($errors !== []) {
             return Twig::fromRequest($request)->render($response->withStatus(422), 'work_category_edit.html.twig', [
-                'title' => '作業分類編集',
                 'workCategory' => $category,
                 'errors' => $errors,
             ]);
@@ -108,7 +106,6 @@ final class WorkCategoriesController
         $query = $request->getQueryParams();
 
         return Twig::fromRequest($request)->render($response->withStatus($status), 'work_categories.html.twig', [
-            'title' => '作業分類管理',
             'workCategories' => $workCategories,
             'errors' => $errors,
             'old' => $old ?? ['name' => '', 'sort_order' => '0'],

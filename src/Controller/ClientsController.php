@@ -45,7 +45,6 @@ final class ClientsController
         }
 
         return Twig::fromRequest($request)->render($response, 'client_edit.html.twig', [
-            'title' => 'クライアント編集',
             'client' => [
                 'id' => (string) $client['id'],
                 'name' => (string) $client['name'],
@@ -72,7 +71,6 @@ final class ClientsController
         $errors = $this->clientService->validate($client);
         if ($errors !== []) {
             return Twig::fromRequest($request)->render($response->withStatus(422), 'client_edit.html.twig', [
-                'title' => 'クライアント編集',
                 'client' => $client,
                 'errors' => $errors,
             ]);
@@ -110,7 +108,6 @@ final class ClientsController
         $showHidden = (string) ($query['show_hidden'] ?? '') === '1';
 
         return Twig::fromRequest($request)->render($response->withStatus($status), 'clients.html.twig', [
-            'title' => 'クライアント管理',
             'clients' => $this->clientService->listAll($showHidden),
             'errors' => $errors,
             'old' => $old ?? ['name' => '', 'sort_order' => '0', 'is_visible' => '1'],

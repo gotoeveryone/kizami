@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
-use App\Service\ApiReportService;
+use App\Service\TimeEntrySummaryService;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 
 final class ApiReportController
 {
     public function __construct(
-        private readonly ApiReportService $apiReportService,
+        private readonly TimeEntrySummaryService $timeEntrySummaryService,
     ) {
     }
 
@@ -33,7 +33,7 @@ final class ApiReportController
             ]);
         }
 
-        $data = $this->apiReportService->summarizeHoursByClient($dateFrom, $dateTo);
+        $data = $this->timeEntrySummaryService->summarizeHoursByClient($dateFrom, $dateTo);
         $totalHours = 0.0;
         foreach ($data as $row) {
             $totalHours += (float) $row['total_hours'];

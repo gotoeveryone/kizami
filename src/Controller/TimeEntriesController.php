@@ -82,7 +82,6 @@ final class TimeEntriesController
         }
 
         return Twig::fromRequest($request)->render($response, 'time_entry_edit.html.twig', [
-            'title' => '稼働時間を編集',
             'entry' => [
                 'id' => $entry['id'],
                 'client_id' => (string) $entry['client_id'],
@@ -114,7 +113,6 @@ final class TimeEntriesController
 
         if ($errors !== []) {
             return Twig::fromRequest($request)->render($response->withStatus(422), 'time_entry_edit.html.twig', [
-                'title' => '稼働時間を編集',
                 'entry' => $entry,
                 'clients' => $this->clientService->listForSelect(),
                 'workCategories' => $this->workCategoryService->listForSelect(),
@@ -129,7 +127,6 @@ final class TimeEntriesController
             $errors[] = $e->getMessage();
 
             return Twig::fromRequest($request)->render($response->withStatus(422), 'time_entry_edit.html.twig', [
-                'title' => '稼働時間を編集',
                 'entry' => $entry,
                 'clients' => $this->clientService->listForSelect(),
                 'workCategories' => $this->workCategoryService->listForSelect(),
@@ -205,7 +202,6 @@ final class TimeEntriesController
         }
 
         return Twig::fromRequest($request)->render($response->withStatus($status), 'home.html.twig', [
-            'title' => 'Kizami',
             'clients' => $this->clientService->listForSelect(),
             'workCategories' => $this->workCategoryService->listForSelect(),
             'timeEntries' => $timeEntries,
