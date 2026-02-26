@@ -60,24 +60,23 @@
             </thead>
             <tbody>
             {% for client in clients %}
-                <tr>
+                <tr
+                    class="clickable-row"
+                    tabindex="0"
+                    aria-label="このクライアントを編集"
+                    onclick="handleRowClick(event, '/clients/{{ client.id }}/edit');"
+                    onkeydown="handleRowKeydown(event, '/clients/{{ client.id }}/edit');"
+                >
                     <td>{{ client.name }}</td>
                     <td>
                         <div class="action-buttons">
-                            <a
-                                href="/clients/{{ client.id }}/edit"
-                                role="button"
-                                class="secondary outline icon-button"
-                                aria-label="編集"
-                                title="編集"
-                            >✎</a>
                             {% if client.is_visible %}
-                            <form method="post" action="/clients/{{ client.id }}/hide">
+                            <form method="post" action="/clients/{{ client.id }}/hide" onclick="event.stopPropagation();">
                                 {% include "partials/csrf_fields.html.twig" %}
                                 <button
                                     type="submit"
                                     class="outline icon-button"
-                                    onclick="return confirm('非表示にしますか？');"
+                                    onclick="event.stopPropagation(); return confirm('非表示にしますか？');"
                                     aria-label="非表示"
                                     title="非表示"
                                 >
@@ -90,12 +89,12 @@
                                 </button>
                             </form>
                             {% else %}
-                            <form method="post" action="/clients/{{ client.id }}/show">
+                            <form method="post" action="/clients/{{ client.id }}/show" onclick="event.stopPropagation();">
                                 {% include "partials/csrf_fields.html.twig" %}
                                 <button
                                     type="submit"
                                     class="outline icon-button"
-                                    onclick="return confirm('再表示しますか？');"
+                                    onclick="event.stopPropagation(); return confirm('再表示しますか？');"
                                     aria-label="再表示"
                                     title="再表示"
                                 >

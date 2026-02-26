@@ -44,26 +44,25 @@
             </thead>
             <tbody>
             {% for workCategory in workCategories %}
-                <tr>
+                <tr
+                    class="clickable-row"
+                    tabindex="0"
+                    aria-label="この作業分類を編集"
+                    onclick="handleRowClick(event, '/work-categories/{{ workCategory.id }}/edit');"
+                    onkeydown="handleRowKeydown(event, '/work-categories/{{ workCategory.id }}/edit');"
+                >
                     <td>{{ workCategory.name }}</td>
                     <td>
                         <div class="action-buttons">
-                            <a
-                                href="/work-categories/{{ workCategory.id }}/edit"
-                                role="button"
-                                class="secondary outline icon-button"
-                                aria-label="編集"
-                                title="編集"
-                            >✎</a>
-                            <form method="post" action="/work-categories/{{ workCategory.id }}/delete">
+                            <form method="post" action="/work-categories/{{ workCategory.id }}/delete" onclick="event.stopPropagation();">
                                 {% include "partials/csrf_fields.html.twig" %}
                                 <button
                                     type="submit"
-                                    class="outline icon-button"
-                                    onclick="return confirm('削除しますか？');"
+                                    class="outline icon-button danger-icon-button"
+                                    onclick="event.stopPropagation(); return confirm('削除しますか？');"
                                     aria-label="削除"
                                     title="削除"
-                                >🗑</button>
+                                >×</button>
                             </form>
                         </div>
                     </td>
