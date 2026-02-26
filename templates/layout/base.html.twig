@@ -20,7 +20,8 @@
         }
 
         main.container {
-            max-width: 96vw;
+            width: min(96vw, 1450px);
+            margin-inline: auto;
         }
 
         h1 {
@@ -44,22 +45,24 @@
             width: 100%;
         }
 
+        .table-wrap {
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
         .group-row td {
             background: rgba(127, 127, 127, 0.12);
             font-weight: 600;
         }
 
-        button,
-        [role="button"],
-        input[type="submit"] {
-            padding: 0.35rem 0.6rem;
-            font-size: 0.9rem;
+        .clickable-row {
+            cursor: pointer;
         }
 
-        article {
-            padding: 0.5rem 0.65rem;
-            margin: 0.4rem 0;
-            font-size: 0.92rem;
+        .clickable-row:hover td,
+        .clickable-row:focus-visible td {
+            background: rgba(127, 127, 127, 0.08);
         }
 
         .notice-success {
@@ -115,6 +118,19 @@
             line-height: 1;
         }
 
+        .danger-icon-button {
+            border-color: rgba(248, 113, 113, 0.55);
+            color: #fca5a5;
+            background: rgba(248, 113, 113, 0.08);
+        }
+
+        .danger-icon-button:hover,
+        .danger-icon-button:focus-visible {
+            background: rgba(248, 113, 113, 0.18);
+            border-color: rgba(248, 113, 113, 0.85);
+            color: #fecaca;
+        }
+
         .icon-svg {
             width: 1rem;
             height: 1rem;
@@ -124,12 +140,6 @@
             stroke-width: 1.8;
             stroke-linecap: round;
             stroke-linejoin: round;
-        }
-
-        .comment-cell {
-            max-width: 20rem;
-            white-space: pre-wrap;
-            word-break: break-word;
         }
 
         .number-cell {
@@ -210,6 +220,64 @@
             padding: 0.15rem 0.3rem;
             font-size: 0.82rem;
             cursor: pointer;
+        }
+
+        @media (max-width: 768px) {
+            main.container {
+                max-width: 100%;
+                padding-left: 0.5rem;
+                padding-right: 0.5rem;
+            }
+
+            .top-nav {
+                align-items: center;
+                flex-direction: row;
+                flex-wrap: wrap;
+                gap: 0.4rem;
+            }
+
+            .top-nav .nav-links {
+                display: flex;
+                flex-wrap: wrap;
+                flex: 1 1 auto;
+                gap: 0.35rem 0.5rem;
+            }
+
+            .top-nav .nav-links a {
+                margin-right: 0;
+                min-height: 1.4rem;
+            }
+
+            .top-nav form {
+                width: auto;
+                margin-left: auto;
+                white-space: nowrap;
+            }
+
+            .logout-compact {
+                padding: 0.15rem 0.3rem;
+            }
+
+            .register-actions {
+                flex-wrap: wrap;
+            }
+
+            .action-buttons [role="button"],
+            .action-buttons button {
+                min-width: 2rem;
+            }
+
+            .mobile-hide {
+                display: none;
+            }
+
+            .danger-icon-button {
+                min-width: 1.75rem !important;
+                width: 1.75rem;
+                height: 1.75rem;
+                font-size: 0.9rem;
+            }
+
         }
     </style>
 </head>

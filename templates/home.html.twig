@@ -110,7 +110,7 @@
                 <th class="number-cell">開始</th>
                 <th class="number-cell">終了</th>
                 <th class="number-cell">時間 (h)</th>
-                <th>コメント</th>
+                <th class="mobile-hide">コメント</th>
                 <th>操作</th>
             </tr>
             </thead>
@@ -126,31 +126,30 @@
                         </td>
                     </tr>
                 {% endif %}
-                <tr>
+                <tr
+                    class="clickable-row"
+                    tabindex="0"
+                    aria-label="この行を編集"
+                    onclick="window.location.href='/time-entries/{{ entry.id }}/edit';"
+                    onkeydown="if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); window.location.href='/time-entries/{{ entry.id }}/edit'; }"
+                >
                     <td>{{ entry.client_name }}</td>
                     <td>{{ entry.work_category_name }}</td>
                     <td class="number-cell">{{ entry.start_time|slice(0, 5) }}</td>
                     <td class="number-cell">{{ entry.end_time|slice(0, 5) }}</td>
                     <td class="number-cell">{{ entry.hours|number_format(2, '.', '') }}</td>
-                    <td class="comment-cell">{{ entry.comment ?: '-' }}</td>
+                    <td class="mobile-hide">{{ entry.comment ?: '-' }}</td>
                     <td>
                         <div class="action-buttons">
-                            <a
-                                href="/time-entries/{{ entry.id }}/edit"
-                                role="button"
-                                class="secondary outline icon-button"
-                                aria-label="編集"
-                                title="編集"
-                            >✎</a>
-                            <form method="post" action="/time-entries/{{ entry.id }}/delete">
+                            <form method="post" action="/time-entries/{{ entry.id }}/delete" onclick="event.stopPropagation();">
                                 {% include "partials/csrf_fields.html.twig" %}
                                 <button
                                     type="submit"
-                                    class="outline icon-button"
-                                    onclick="return confirm('削除しますか？');"
+                                    class="outline icon-button danger-icon-button"
+                                    onclick="event.stopPropagation(); return confirm('削除しますか？');"
                                     aria-label="削除"
                                     title="削除"
-                                >🗑</button>
+                                >×</button>
                             </form>
                         </div>
                     </td>
