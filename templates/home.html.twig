@@ -130,15 +130,15 @@
                     class="clickable-row"
                     tabindex="0"
                     aria-label="この行を編集"
-                    onclick="window.location.href='/time-entries/{{ entry.id }}/edit';"
-                    onkeydown="if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); window.location.href='/time-entries/{{ entry.id }}/edit'; }"
+                    onclick="handleRowClick(event, '/time-entries/{{ entry.id }}/edit');"
+                    onkeydown="handleRowKeydown(event, '/time-entries/{{ entry.id }}/edit');"
                 >
                     <td>{{ entry.client_name }}</td>
                     <td>{{ entry.work_category_name }}</td>
                     <td class="number-cell">{{ entry.start_time|slice(0, 5) }}</td>
                     <td class="number-cell">{{ entry.end_time|slice(0, 5) }}</td>
                     <td class="number-cell">{{ entry.hours|number_format(2, '.', '') }}</td>
-                    <td class="mobile-hide">{{ entry.comment ?: '-' }}</td>
+                    <td class="mobile-hide comment-cell">{{ entry.comment ?: '-' }}</td>
                     <td>
                         <div class="action-buttons">
                             <form method="post" action="/time-entries/{{ entry.id }}/delete" onclick="event.stopPropagation();">

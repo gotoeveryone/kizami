@@ -147,6 +147,11 @@
             font-variant-numeric: tabular-nums;
         }
 
+        .comment-cell {
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
         .register-panel > summary {
             list-style: none;
             cursor: pointer;
@@ -302,5 +307,28 @@
     {% endif %}
     {% block body %}{% endblock %}
 </main>
+<script>
+    function isInteractiveTarget(element) {
+        return Boolean(element.closest("a, button, input, select, textarea, form, label, [role='button']"));
+    }
+
+    function handleRowClick(event, url) {
+        if (isInteractiveTarget(event.target)) {
+            return;
+        }
+        window.location.href = url;
+    }
+
+    function handleRowKeydown(event, url) {
+        if (isInteractiveTarget(event.target)) {
+            return;
+        }
+
+        if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            window.location.href = url;
+        }
+    }
+</script>
 </body>
 </html>

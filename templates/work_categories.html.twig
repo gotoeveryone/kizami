@@ -48,8 +48,8 @@
                     class="clickable-row"
                     tabindex="0"
                     aria-label="この作業分類を編集"
-                    onclick="window.location.href='/work-categories/{{ workCategory.id }}/edit';"
-                    onkeydown="if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); window.location.href='/work-categories/{{ workCategory.id }}/edit'; }"
+                    onclick="handleRowClick(event, '/work-categories/{{ workCategory.id }}/edit');"
+                    onkeydown="handleRowKeydown(event, '/work-categories/{{ workCategory.id }}/edit');"
                 >
                     <td>{{ workCategory.name }}</td>
                     <td>

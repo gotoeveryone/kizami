@@ -64,8 +64,8 @@
                     class="clickable-row"
                     tabindex="0"
                     aria-label="このクライアントを編集"
-                    onclick="window.location.href='/clients/{{ client.id }}/edit';"
-                    onkeydown="if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); window.location.href='/clients/{{ client.id }}/edit'; }"
+                    onclick="handleRowClick(event, '/clients/{{ client.id }}/edit');"
+                    onkeydown="handleRowKeydown(event, '/clients/{{ client.id }}/edit');"
                 >
                     <td>{{ client.name }}</td>
                     <td>
