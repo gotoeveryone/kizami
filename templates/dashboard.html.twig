@@ -5,7 +5,42 @@
 {% block body %}
     <h1>Kizami</h1>
 
-    <h2>クライアント別稼働時間</h2>
+    <h2>今週の稼働時間</h2>
+    <div class="table-wrap">
+        <table>
+            <thead>
+            <tr>
+                <th>クライアント</th>
+                {% for weekDate in weekDates %}
+                    <th class="number-cell{% if weekDate.is_today %} week-col-today{% endif %}{% if weekDate.is_saturday %} week-text-saturday{% endif %}{% if weekDate.is_sunday %} week-text-sunday{% endif %}">
+                        {{ weekDate.label }}
+                    </th>
+                {% endfor %}
+                <th class="number-cell">週合計 (h)</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for row in weeklyClientRows %}
+                <tr>
+                    <td>{{ row.client_name }}</td>
+                    {% for weekDate in weekDates %}
+                        <td class="number-cell{% if weekDate.is_today %} week-col-today{% endif %}">{{ row.hours_by_date[weekDate.key]|number_format(2, '.', '') }}</td>
+                    {% endfor %}
+                    <td class="number-cell"><strong>{{ row.weekly_total_hours|number_format(2, '.', '') }}</strong></td>
+                </tr>
+            {% endfor %}
+            <tr>
+                <td><strong>合計</strong></td>
+                {% for weekDate in weekDates %}
+                    <td class="number-cell{% if weekDate.is_today %} week-col-today{% endif %}"><strong>{{ weeklyColumnTotals[weekDate.key]|number_format(2, '.', '') }}</strong></td>
+                {% endfor %}
+                <td class="number-cell"><strong>{{ weeklyGrandTotal|number_format(2, '.', '') }}</strong></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <h2>直近{{ months|length }}ヶ月の稼働時間</h2>
     {% if clientRows %}
         <div class="table-wrap">
             <table>
@@ -38,4 +73,5 @@
     {% else %}
         <p>直近4ヶ月の稼働時間はまだありません。</p>
     {% endif %}
+
 {% endblock %}
