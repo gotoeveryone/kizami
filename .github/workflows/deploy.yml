@@ -17,8 +17,8 @@ jobs:
       PROJECT: "${{ github.event.repository.name }}"
       TAR_NAME: "${{ github.run_number }}.tar.gz"
       TAR_REMOTE_PATH: "~/release/tmp/${{ github.event.repository.name }}/deploy/${{ github.run_number }}.tar.gz"
-      SHELL_DEST_PATH: "~/deploy_${{ github.run_number }}.sh"
-      DEPLOY_TARGET_PATH: ${{ secrets.DEPLOY_TARGET_PATH }}
+      SHELL_DEST_PATH: "~/release/tmp/deploy_${{ github.run_number }}.sh"
+      PUBLIC_DIR: "${{ secrets.PUBLIC_DIR }}"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -44,12 +44,7 @@ jobs:
           scp ~/${TAR_NAME} target:${TAR_REMOTE_PATH}
           scp ./scripts/deploy.sh target:${SHELL_DEST_PATH}
       - name: Deploy modules
-        run: |
-          if [ -z "${DEPLOY_TARGET_PATH}" ]; then
-            echo "DEPLOY_TARGET_PATH is not set"
-            exit 1
-          fi
-          ssh target "${SHELL_DEST_PATH} ${TAR_REMOTE_PATH} ${PROJECT} '${DEPLOY_TARGET_PATH}' && rm -f ${SHELL_DEST_PATH}"
+        run: ssh target "${SHELL_DEST_PATH} ${TAR_REMOTE_PATH} ${PROJECT} ${PUBLIC_DIR} && rm -f ${SHELL_DEST_PATH}"
 
   notify:
     if: ${{ always() && needs.deploy.result != 'skipped' }}
