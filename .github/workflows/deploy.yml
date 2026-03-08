@@ -2,19 +2,26 @@ name: Deploy
 
 on:
   workflow_run:
-    workflows: ["CI"]
+    workflows: [CI]
     types: [completed]
+    branches: [main]
+
+concurrency:
+  group: deploy-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   deploy:
-    if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main' }}
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     env:
-      TAR_NAME: "kizami_${{ github.run_number }}.tar.gz"
+      PROJECT: "${{ github.event.repository.name }}"
+      TAR_NAME: "${{ github.run_number }}.tar.gz"
+      TAR_REMOTE_PATH: "~/release/tmp/${{ github.event.repository.name }}/deploy/${{ github.run_number }}.tar.gz"
       SHELL_DEST_PATH: "~/deploy_${{ github.run_number }}.sh"
       DEPLOY_TARGET_PATH: ${{ secrets.DEPLOY_TARGET_PATH }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.workflow_run.head_sha }}
       - name: Install SSH Key
@@ -24,18 +31,17 @@ jobs:
           name: id_rsa-target
           known_hosts: ${{ secrets.SSH_KNOWN_HOSTS }}
           config: |
-            Host *
-              StrictHostKeyChecking no
-              UserKnownHostsFile=/dev/null
             Host target
               HostName ${{ secrets.SSH_HOST }}
               User ${{ secrets.SSH_USER }}
               Port ${{ secrets.SSH_PORT }}
+              StrictHostKeyChecking yes
               IdentityFile ~/.ssh/id_rsa-target
       - name: Transfer modules
         run: |
+          ssh target "mkdir -p ~/release/tmp/${PROJECT}/deploy"
           tar czf ~/${TAR_NAME} app/ bin/ config/ migrations/ public/ src/ templates/ composer.json composer.lock
-          scp -r ~/${TAR_NAME} target:~/
+          scp ~/${TAR_NAME} target:${TAR_REMOTE_PATH}
           scp ./scripts/deploy.sh target:${SHELL_DEST_PATH}
       - name: Deploy modules
         run: |
@@ -43,7 +49,7 @@ jobs:
             echo "DEPLOY_TARGET_PATH is not set"
             exit 1
           fi
-          ssh target "${SHELL_DEST_PATH} ${TAR_NAME} kizami '${DEPLOY_TARGET_PATH}' && rm -f ${SHELL_DEST_PATH}"
+          ssh target "${SHELL_DEST_PATH} ${TAR_REMOTE_PATH} ${PROJECT} '${DEPLOY_TARGET_PATH}' && rm -f ${SHELL_DEST_PATH}"
 
   notify:
     if: ${{ always() && needs.deploy.result != 'skipped' }}
