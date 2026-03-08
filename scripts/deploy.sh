@@ -4,18 +4,19 @@ set -euo pipefail
 IFS=$'\n\t'
 
 if [[ $# -ne 3 ]]; then
-  echo "Usage: $0 <tar_path> <project> <target_path>" >&2
+  echo "Usage: $0 <tar_path> <project> <public_dir>" >&2
   exit 1
 fi
 
 readonly TAR_PATH_INPUT="$1"
 readonly PROJECT="$2"
-readonly TARGET_PATH="$3"
+readonly PUBLIC_DIR="$3"
 readonly RELEASE_BASE="${HOME}/release"
 readonly WORK_DIR="${RELEASE_BASE}/link/${PROJECT}"
 readonly DEPLOY_SEQ="$(date +'%Y%m%d-%H%M%S')"
 readonly WWW_DIR="${WORK_DIR}/${DEPLOY_SEQ}"
 readonly CURRENT_PATH="${WORK_DIR}/current"
+readonly TARGET_PATH="${PUBLIC_DIR%/}/${PROJECT}"
 readonly LOG_DIR="${RELEASE_BASE}/logs/${PROJECT}"
 readonly ENV_FILE_PATH="${RELEASE_BASE}/environment/${PROJECT}/.env"
 readonly KEEP_RELEASES=3
