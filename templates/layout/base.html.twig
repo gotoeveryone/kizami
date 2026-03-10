@@ -166,6 +166,19 @@
             word-break: break-word;
         }
 
+        .period-range {
+            display: grid;
+            grid-template-columns: minmax(10rem, 1fr) auto minmax(10rem, 1fr);
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .period-separator {
+            margin-bottom: var(--pico-spacing);
+            text-align: center;
+            white-space: nowrap;
+        }
+
         .register-panel > summary {
             list-style: none;
             cursor: pointer;
