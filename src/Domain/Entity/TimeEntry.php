@@ -55,12 +55,14 @@ class TimeEntry
         $now = new DateTimeImmutable();
         $this->created = $now;
         $this->modified = $now;
+        $this->recalculateHoursIfPossible();
     }
 
     #[ORM\PreUpdate]
     public function onPreUpdate(): void
     {
         $this->modified = new DateTimeImmutable();
+        $this->recalculateHoursIfPossible();
     }
 
     public function getId(): ?int
@@ -103,21 +105,16 @@ class TimeEntry
         return $this->startTime;
     }
 
-    public function setStartTime(DateTimeImmutable $startTime): void
-    {
-        $this->assertQuarterTime($startTime, '開始時刻は15分刻みで指定してください。');
-        $this->startTime = $startTime;
-        $this->recalculateHoursIfPossible();
-    }
-
     public function getEndTime(): DateTimeImmutable
     {
         return $this->endTime;
     }
 
-    public function setEndTime(DateTimeImmutable $endTime): void
+    public function setTimeRange(DateTimeImmutable $startTime, DateTimeImmutable $endTime): void
     {
+        $this->assertQuarterTime($startTime, '開始時刻は15分刻みで指定してください。');
         $this->assertQuarterTime($endTime, '終了時刻は15分刻みで指定してください。');
+        $this->startTime = $startTime;
         $this->endTime = $endTime;
         $this->recalculateHoursIfPossible();
     }

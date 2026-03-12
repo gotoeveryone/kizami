@@ -118,8 +118,7 @@ final class TimeEntryService
     public function calculateHours(string $start, string $end): float
     {
         $timeEntry = new TimeEntry();
-        $timeEntry->setStartTime($this->parseTime($start));
-        $timeEntry->setEndTime($this->parseTime($end));
+        $timeEntry->setTimeRange($this->parseTime($start), $this->parseTime($end));
 
         return (float) $timeEntry->getHours();
     }
@@ -137,8 +136,10 @@ final class TimeEntryService
         $timeEntry->setClient($client);
         $timeEntry->setWorkCategory($workCategory);
         $timeEntry->setDate($this->parseDate((string) $entry['date']));
-        $timeEntry->setStartTime($this->parseTime((string) $entry['start_time']));
-        $timeEntry->setEndTime($this->parseTime((string) $entry['end_time']));
+        $timeEntry->setTimeRange(
+            $this->parseTime((string) $entry['start_time']),
+            $this->parseTime((string) $entry['end_time']),
+        );
         $timeEntry->setComment($entry['comment'] !== '' ? (string) $entry['comment'] : null);
 
         $this->entityManager->persist($timeEntry);
@@ -166,8 +167,10 @@ final class TimeEntryService
         $timeEntry->setClient($client);
         $timeEntry->setWorkCategory($workCategory);
         $timeEntry->setDate($this->parseDate((string) $entry['date']));
-        $timeEntry->setStartTime($this->parseTime((string) $entry['start_time']));
-        $timeEntry->setEndTime($this->parseTime((string) $entry['end_time']));
+        $timeEntry->setTimeRange(
+            $this->parseTime((string) $entry['start_time']),
+            $this->parseTime((string) $entry['end_time']),
+        );
         $timeEntry->setComment($entry['comment'] !== '' ? (string) $entry['comment'] : null);
 
         $this->entityManager->flush();
