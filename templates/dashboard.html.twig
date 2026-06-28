@@ -40,6 +40,40 @@
         </table>
     </div>
 
+    <h2>直近{{ weekSummaries|length }}週の稼働時間</h2>
+    {% if weekSummaryClientRows %}
+        <div class="table-wrap">
+            <table>
+                <thead>
+                <tr>
+                    <th>クライアント</th>
+                    {% for weekSummary in weekSummaries %}
+                        <th class="number-cell">{{ weekSummary.label }} (h)</th>
+                    {% endfor %}
+                </tr>
+                </thead>
+                <tbody>
+                {% for row in weekSummaryClientRows %}
+                    <tr>
+                        <td>{{ row.client_name }}</td>
+                        {% for weekSummary in weekSummaries %}
+                            <td class="number-cell">{{ row.hours_by_week[weekSummary.key]|number_format(2, '.', '') }}</td>
+                        {% endfor %}
+                    </tr>
+                {% endfor %}
+                <tr>
+                    <td><strong>合計</strong></td>
+                    {% for weekSummary in weekSummaries %}
+                        <td class="number-cell"><strong>{{ weekSummaryColumnTotals[weekSummary.key]|number_format(2, '.', '') }}</strong></td>
+                    {% endfor %}
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <p>直近5週の稼働時間はまだありません。</p>
+    {% endif %}
+
     <h2>直近{{ months|length }}ヶ月の稼働時間</h2>
     {% if clientRows %}
         <div class="table-wrap">

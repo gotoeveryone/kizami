@@ -190,6 +190,121 @@ final class TimeEntrySummaryServiceTest extends TestCase
     }
 
     #[Test]
+    public function summarizeHoursByClientByWeekShouldUseSingleQueryBuilderQuery(): void
+    {
+        $result = $this->createMock(Result::class);
+        $result->expects(self::once())
+            ->method('fetchAllAssociative')
+            ->willReturn([
+                [
+                    'client_id' => 1,
+                    'client_name' => 'Acme',
+                    'week_start' => '2026-02-23',
+                    'total_hours' => '18.75',
+                ],
+                [
+                    'client_id' => 1,
+                    'client_name' => 'Acme',
+                    'week_start' => '2026-02-16',
+                    'total_hours' => '12.25',
+                ],
+            ]);
+
+        $queryBuilder = $this->createMock(DbalQueryBuilder::class);
+        $queryBuilder->method('select')->willReturnSelf();
+        $queryBuilder->method('from')->willReturnSelf();
+        $queryBuilder->method('innerJoin')->willReturnSelf();
+        $queryBuilder->method('where')->willReturnSelf();
+        $queryBuilder->method('setParameter')->willReturnSelf();
+        $queryBuilder->method('groupBy')->willReturnSelf();
+        $queryBuilder->method('addGroupBy')->willReturnSelf();
+        $queryBuilder->method('orderBy')->willReturnSelf();
+        $queryBuilder->method('addOrderBy')->willReturnSelf();
+        $queryBuilder->expects(self::once())
+            ->method('executeQuery')
+            ->willReturn($result);
+
+        $connection = $this->createMock(Connection::class);
+        $connection->expects(self::once())
+            ->method('createQueryBuilder')
+            ->willReturn($queryBuilder);
+
+        $entityManager = $this->createMock(EntityManagerInterface::class);
+        $entityManager->method('getConnection')->willReturn($connection);
+
+        $service = new TimeEntrySummaryService($entityManager);
+
+        $rows = $service->summarizeHoursByClientByWeek('2026-02-02', '2026-03-08');
+
+        self::assertSame([
+            [
+                'client_id' => 1,
+                'client_name' => 'Acme',
+                'week_key' => '2026-02-23',
+                'total_hours' => 18.75,
+            ],
+            [
+                'client_id' => 1,
+                'client_name' => 'Acme',
+                'week_key' => '2026-02-16',
+                'total_hours' => 12.25,
+            ],
+        ], $rows);
+    }
+
+    #[Test]
+    public function summarizeTotalHoursByWeekShouldUseSingleQueryBuilderQuery(): void
+    {
+        $result = $this->createMock(Result::class);
+        $result->expects(self::once())
+            ->method('fetchAllAssociative')
+            ->willReturn([
+                [
+                    'week_start' => '2026-02-23',
+                    'total_hours' => '30.50',
+                ],
+                [
+                    'week_start' => '2026-02-16',
+                    'total_hours' => '14.25',
+                ],
+            ]);
+
+        $queryBuilder = $this->createMock(DbalQueryBuilder::class);
+        $queryBuilder->method('select')->willReturnSelf();
+        $queryBuilder->method('from')->willReturnSelf();
+        $queryBuilder->method('where')->willReturnSelf();
+        $queryBuilder->method('setParameter')->willReturnSelf();
+        $queryBuilder->method('groupBy')->willReturnSelf();
+        $queryBuilder->method('orderBy')->willReturnSelf();
+        $queryBuilder->expects(self::once())
+            ->method('executeQuery')
+            ->willReturn($result);
+
+        $connection = $this->createMock(Connection::class);
+        $connection->expects(self::once())
+            ->method('createQueryBuilder')
+            ->willReturn($queryBuilder);
+
+        $entityManager = $this->createMock(EntityManagerInterface::class);
+        $entityManager->method('getConnection')->willReturn($connection);
+
+        $service = new TimeEntrySummaryService($entityManager);
+
+        $rows = $service->summarizeTotalHoursByWeek('2026-02-02', '2026-03-08');
+
+        self::assertSame([
+            [
+                'week_key' => '2026-02-23',
+                'total_hours' => 30.5,
+            ],
+            [
+                'week_key' => '2026-02-16',
+                'total_hours' => 14.25,
+            ],
+        ], $rows);
+    }
+
+    #[Test]
     public function summarizeHoursByClientByDateShouldUseSingleQueryBuilderQuery(): void
     {
         $result = $this->createMock(Result::class);
