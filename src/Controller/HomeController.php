@@ -33,6 +33,21 @@ final class HomeController
         $monthKeys = array_map(static fn (DateTimeInterface $month): string => $month->format('Y-m'), $months);
         $rowsByClient = $this->buildClientRows($clientSummaries, $monthKeys);
         $columnTotals = $this->buildColumnTotals($totalSummaries, $monthKeys);
+
+        $weeks = $this->buildRecentWeeks(5);
+        $weekSummaryRange = $this->buildWeekSummaryRange($weeks);
+        $weekSummaryClientSummaries = $this->timeEntrySummaryService->summarizeHoursByClientByWeek(
+            $weekSummaryRange['from'],
+            $weekSummaryRange['to'],
+        );
+        $weekSummaryTotalSummaries = $this->timeEntrySummaryService->summarizeTotalHoursByWeek(
+            $weekSummaryRange['from'],
+            $weekSummaryRange['to'],
+        );
+        $weekKeys = array_map(static fn (DateTimeInterface $week): string => $week->format('Y-m-d'), $weeks);
+        $weekSummaryClientRows = $this->buildWeekSummaryClientRows($weekSummaryClientSummaries, $weekKeys);
+        $weekSummaryColumnTotals = $this->buildWeekSummaryColumnTotals($weekSummaryTotalSummaries, $weekKeys);
+
         $weekDates = $this->buildCurrentWeekDates();
         $weekRange = $this->buildDateRangeForDates($weekDates);
         $weeklyClientSummaries = $this->timeEntrySummaryService->summarizeHoursByClientByDate(
@@ -56,6 +71,9 @@ final class HomeController
             'weeklyClientRows' => $weeklyClientRows,
             'weeklyColumnTotals' => $weeklyColumnTotals,
             'weeklyGrandTotal' => $weeklyGrandTotal,
+            'weekSummaries' => $this->formatWeekSummaries($weeks),
+            'weekSummaryClientRows' => $weekSummaryClientRows,
+            'weekSummaryColumnTotals' => $weekSummaryColumnTotals,
         ]);
     }
 
@@ -85,6 +103,28 @@ final class HomeController
         return [
             'from' => $dates[0]->format('Y-m-d'),
             'to' => $dates[array_key_last($dates)]->format('Y-m-d'),
+        ];
+    }
+
+    private function buildRecentWeeks(int $count): array
+    {
+        $weeks = [];
+        $base = new DateTimeImmutable('monday this week');
+
+        for ($offset = 0; $offset < $count; $offset++) {
+            $weeks[] = $base->modify(sprintf('-%d week', $offset));
+        }
+
+        return $weeks;
+    }
+
+    private function buildWeekSummaryRange(array $weeks): array
+    {
+        $oldestWeek = $weeks[array_key_last($weeks)];
+
+        return [
+            'from' => $oldestWeek->format('Y-m-d'),
+            'to' => $weeks[0]->modify('+6 days')->format('Y-m-d'),
         ];
     }
 
@@ -146,6 +186,63 @@ final class HomeController
         return $columnTotals;
     }
 
+    private function buildWeekSummaryClientRows(array $clientSummaries, array $weekKeys): array
+    {
+        $rowsByClient = [];
+
+        foreach ($clientSummaries as $summary) {
+            $weekKey = (string) $summary['week_key'];
+            if (!in_array($weekKey, $weekKeys, true)) {
+                continue;
+            }
+
+            $clientId = (int) $summary['client_id'];
+            if (!isset($rowsByClient[$clientId])) {
+                $rowsByClient[$clientId] = [
+                    'client_name' => (string) $summary['client_name'],
+                    'hours_by_week' => [],
+                ];
+            }
+
+            $rowsByClient[$clientId]['hours_by_week'][$weekKey] = (float) $summary['total_hours'];
+        }
+
+        foreach ($rowsByClient as &$row) {
+            foreach ($weekKeys as $weekKey) {
+                $row['hours_by_week'][$weekKey] = round((float) ($row['hours_by_week'][$weekKey] ?? 0.0), 2);
+            }
+        }
+        unset($row);
+
+        $currentWeekKey = $weekKeys[0];
+        uasort($rowsByClient, static function (array $left, array $right) use ($currentWeekKey): int {
+            $leftHours = (float) ($left['hours_by_week'][$currentWeekKey] ?? 0.0);
+            $rightHours = (float) ($right['hours_by_week'][$currentWeekKey] ?? 0.0);
+
+            if ($leftHours === $rightHours) {
+                return strcmp((string) $left['client_name'], (string) $right['client_name']);
+            }
+
+            return $rightHours <=> $leftHours;
+        });
+
+        return array_values($rowsByClient);
+    }
+
+    private function buildWeekSummaryColumnTotals(array $totalSummaries, array $weekKeys): array
+    {
+        $columnTotals = array_fill_keys($weekKeys, 0.0);
+        foreach ($totalSummaries as $summary) {
+            $weekKey = (string) $summary['week_key'];
+            if (!array_key_exists($weekKey, $columnTotals)) {
+                continue;
+            }
+            $columnTotals[$weekKey] = round((float) $summary['total_hours'], 2);
+        }
+
+        return $columnTotals;
+    }
+
     private function formatMonths(array $months): array
     {
         return array_map(
@@ -154,6 +251,17 @@ final class HomeController
                 'label' => $month->format('Y年n月'),
             ],
             $months,
+        );
+    }
+
+    private function formatWeekSummaries(array $weeks): array
+    {
+        return array_map(
+            static fn (DateTimeInterface $week): array => [
+                'key' => $week->format('Y-m-d'),
+                'label' => sprintf('%s - %s', $week->format('n/j'), $week->modify('+6 days')->format('n/j')),
+            ],
+            $weeks,
         );
     }
 

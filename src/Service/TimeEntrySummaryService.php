@@ -96,6 +96,64 @@ final class TimeEntrySummaryService
         ], $rows);
     }
 
+    public function summarizeHoursByClientByWeek(string $dateFrom, string $dateTo): array
+    {
+        $queryBuilder = $this->entityManager->getConnection()->createQueryBuilder();
+
+        $rows = $queryBuilder
+            ->select(
+                'c.id AS client_id',
+                'c.name AS client_name',
+                'DATE_SUB(te.date, INTERVAL WEEKDAY(te.date) DAY) AS week_start',
+                'SUM(te.hours) AS total_hours',
+            )
+            ->from('time_entries', 'te')
+            ->innerJoin('te', 'clients', 'c', 'c.id = te.client_id')
+            ->where('te.date BETWEEN :date_from AND :date_to')
+            ->setParameter('date_from', $dateFrom)
+            ->setParameter('date_to', $dateTo)
+            ->groupBy('c.id')
+            ->addGroupBy('c.name')
+            ->addGroupBy('c.sort_order')
+            ->addGroupBy('week_start')
+            ->orderBy('c.sort_order', 'ASC')
+            ->addOrderBy('c.name', 'ASC')
+            ->addOrderBy('week_start', 'DESC')
+            ->executeQuery()
+            ->fetchAllAssociative();
+
+        return array_map(static fn (array $row): array => [
+            'client_id' => (int) $row['client_id'],
+            'client_name' => (string) $row['client_name'],
+            'week_key' => (string) $row['week_start'],
+            'total_hours' => (float) $row['total_hours'],
+        ], $rows);
+    }
+
+    public function summarizeTotalHoursByWeek(string $dateFrom, string $dateTo): array
+    {
+        $queryBuilder = $this->entityManager->getConnection()->createQueryBuilder();
+
+        $rows = $queryBuilder
+            ->select(
+                'DATE_SUB(te.date, INTERVAL WEEKDAY(te.date) DAY) AS week_start',
+                'SUM(te.hours) AS total_hours',
+            )
+            ->from('time_entries', 'te')
+            ->where('te.date BETWEEN :date_from AND :date_to')
+            ->setParameter('date_from', $dateFrom)
+            ->setParameter('date_to', $dateTo)
+            ->groupBy('week_start')
+            ->orderBy('week_start', 'DESC')
+            ->executeQuery()
+            ->fetchAllAssociative();
+
+        return array_map(static fn (array $row): array => [
+            'week_key' => (string) $row['week_start'],
+            'total_hours' => (float) $row['total_hours'],
+        ], $rows);
+    }
+
     public function summarizeHoursByClientByDate(string $dateFrom, string $dateTo): array
     {
         $queryBuilder = $this->entityManager->getConnection()->createQueryBuilder();
