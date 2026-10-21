@@ -1,6 +1,6 @@
 services:
   app:
-    image: ghcr.io/gotoeveryone/composer-php:8.4
+    image: ghcr.io/gotoeveryone/composer-php:8.4.27
     working_dir: /var/www/html
     ports:
       - "8080:8080"
