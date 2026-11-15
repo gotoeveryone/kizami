@@ -9,14 +9,9 @@
         <article class="notice-error">{{ error }}</article>
     {% endif %}
 
-    <form method="post" action="/login">
-        {% include "partials/csrf_fields.html.twig" %}
-        <label for="username">ユーザー名</label>
-        <input id="username" type="text" name="username" required>
+    {% if notice %}
+        <article>{{ notice }}</article>
+    {% endif %}
 
-        <label for="password">パスワード</label>
-        <input id="password" type="password" name="password" required>
-
-        <button type="submit">ログイン</button>
-    </form>
+    <a href="/auth/google" role="button">Google でログイン</a>
 {% endblock %}

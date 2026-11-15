@@ -8,6 +8,7 @@
         "doctrine/dbal": "^4.0",
         "doctrine/migrations": "^3.9",
         "doctrine/orm": "^3.6",
+        "google/apiclient": "^2.0",
         "monolog/monolog": "^3.0",
         "php-di/php-di": "^7.1",
         "php-di/slim-bridge": "^3.4",

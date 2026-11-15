@@ -15,29 +15,31 @@ final class AuthService
     ) {
     }
 
-    public function attemptLogin(string $username, string $password): bool
+    public function loginWithGoogleSub(string $sub): bool
     {
         $auth = $this->settings['auth'];
-        $configuredUsername = trim((string) ($auth['admin_username'] ?? ''));
-        $configuredPasswordHash = trim((string) ($auth['admin_password_hash'] ?? ''));
+        $allowedSub = trim((string) ($auth['google_allowed_sub'] ?? ''));
 
-        if ($configuredUsername === '' || $configuredPasswordHash === '') {
+        if ($sub === '' || $allowedSub === '' || !hash_equals($allowedSub, $sub)) {
             return false;
         }
 
-        if (hash_equals($configuredUsername, $username) && password_verify($password, $configuredPasswordHash)) {
-            $_SESSION[(string) $auth['session_key']] = $username;
+        $_SESSION[(string) $auth['session_key']] = $sub;
+        unset($_SESSION['kizami_logout_pending']);
 
-            return true;
-        }
-
-        return false;
+        return true;
     }
 
     public function logout(): void
     {
         $sessionKey = (string) $this->settings['auth']['session_key'];
         unset($_SESSION[$sessionKey]);
+        $_SESSION['kizami_logout_pending'] = true;
+    }
+
+    public function isLogoutPending(): bool
+    {
+        return ($_SESSION['kizami_logout_pending'] ?? false) === true;
     }
 
     public function isLoggedIn(): bool
