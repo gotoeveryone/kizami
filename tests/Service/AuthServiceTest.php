@@ -5,9 +5,6 @@ declare(strict_types=1);
 namespace Tests\Service;
 
 use App\Service\AuthService;
-use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\Query;
-use Doctrine\ORM\QueryBuilder;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
@@ -73,56 +70,13 @@ final class AuthServiceTest extends TestCase
         }
     }
 
-    #[Test]
-    public function validateApiKeyShouldReturnFalseWhenInputIsEmpty(): void
+    private function createService(string $allowedSub = 'allowed-sub'): AuthService
     {
-        $service = $this->createService();
-
-        self::assertFalse($service->validateApiKey(''));
-    }
-
-    #[Test]
-    public function validateApiKeyShouldReturnTrueWhenActiveKeyExists(): void
-    {
-        $service = $this->createService(apiKeyCount: 1);
-
-        self::assertTrue($service->validateApiKey('dev-key'));
-    }
-
-    #[Test]
-    public function validateApiKeyShouldReturnFalseWhenNoActiveKeyExists(): void
-    {
-        $service = $this->createService(apiKeyCount: 0);
-
-        self::assertFalse($service->validateApiKey('dev-key'));
-    }
-
-    private function createService(
-        int $apiKeyCount = 0,
-        string $allowedSub = 'allowed-sub',
-    ): AuthService {
-        $query = $this->createMock(Query::class);
-        $query->method('getSingleScalarResult')->willReturn($apiKeyCount);
-
-        $queryBuilder = $this->createMock(QueryBuilder::class);
-        $queryBuilder->method('select')->willReturnSelf();
-        $queryBuilder->method('from')->willReturnSelf();
-        $queryBuilder->method('where')->willReturnSelf();
-        $queryBuilder->method('andWhere')->willReturnSelf();
-        $queryBuilder->method('setParameter')->willReturnSelf();
-        $queryBuilder->method('getQuery')->willReturn($query);
-
-        $entityManager = $this->createMock(EntityManagerInterface::class);
-        $entityManager->method('createQueryBuilder')->willReturn($queryBuilder);
-
-        return new AuthService(
-            $entityManager,
-            [
-                'auth' => [
-                    'session_key' => self::SESSION_KEY,
-                    'google_allowed_sub' => $allowedSub,
-                ],
-            ]
-        );
+        return new AuthService([
+            'auth' => [
+                'session_key' => self::SESSION_KEY,
+                'google_allowed_sub' => $allowedSub,
+            ],
+        ]);
     }
 }
