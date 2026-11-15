@@ -70,13 +70,10 @@ docker compose run --rm --no-deps app composer check
 
 ## 週次稼働時間通知
 
-サーバーの `.env` に `WEEKLY_REPORT_SLACK_WEBHOOK_URL` を設定します。コマンドは日本時間の前週（月曜〜日曜）を集計して Slack に通知します。
+`.env` に `WEEKLY_REPORT_SLACK_WEBHOOK_URL` を設定します。アプリのルートディレクトリで次のコマンドを実行すると、日本時間の前週（月曜〜日曜）を集計して Slack に通知します。
 
 ```bash
-export PATH="$HOME/.php:$PATH"
-cd "$(dirname "$(readlink -f "$HOME/release/link/kizami/current")")" && php bin/notify-weekly-hours
+php bin/notify-weekly-hours
 ```
-
-`current` は公開ディレクトリを指すため、実行時にその親のリリースディレクトリへ移動します。cron には週 1 回、このコマンドを登録してください。サーバーの cron のタイムゾーンを確認し、日本時間の月曜日以降に起動する時刻を選んでください。重複登録すると通知が二重に届きます。
 
 通知に失敗した場合は標準エラー出力に理由を表示し、終了コード 1 を返します。cron の標準出力・標準エラーをログに保存し、失敗を確認できるようにしてください。
