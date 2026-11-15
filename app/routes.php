@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-use App\Controller\ApiReportController;
 use App\Controller\AuthController;
 use App\Controller\ClientsController;
 use App\Controller\HomeController;
@@ -35,6 +34,4 @@ return function (App $app): void {
     $app->get('/work-categories/{id}/edit', WorkCategoriesController::class . ':edit');
     $app->post('/work-categories/{id}', WorkCategoriesController::class . ':update');
     $app->post('/work-categories/{id}/delete', WorkCategoriesController::class . ':delete');
-
-    $app->get('/api/v1/reports/hours', ApiReportController::class . ':summarize');
 };

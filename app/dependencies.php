@@ -53,7 +53,6 @@ return function (ContainerBuilder $containerBuilder): void {
 
         AuthService::class => function (ContainerInterface $c): AuthService {
             return new AuthService(
-                $c->get(EntityManagerInterface::class),
                 $c->get('settings'),
             );
         },

@@ -1,0 +1,65 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+use App\Service\TimeEntrySummaryService;
+use Doctrine\DBAL\DriverManager;
+use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\ORMSetup;
+use Symfony\Component\Cache\Adapter\ArrayAdapter;
+
+require __DIR__ . '/../vendor/autoload.php';
+Dotenv\Dotenv::createImmutable(__DIR__ . '/..')->safeLoad();
+
+try {
+    $webhookUrl = (string) ($_ENV['WEEKLY_REPORT_SLACK_WEBHOOK_URL'] ?? '');
+    if (!filter_var($webhookUrl, FILTER_VALIDATE_URL) || parse_url($webhookUrl, PHP_URL_SCHEME) !== 'https') {
+        throw new RuntimeException('WEEKLY_REPORT_SLACK_WEBHOOK_URL に HTTPS URL を設定してください。');
+    }
+
+    $today = new DateTimeImmutable('today', new DateTimeZone('Asia/Tokyo'));
+    $thisMonday = $today->modify('monday this week');
+    $dateFrom = $thisMonday->modify('-7 days')->format('Y-m-d');
+    $dateTo = $thisMonday->modify('-1 day')->format('Y-m-d');
+
+    $settings = require __DIR__ . '/../config/doctrine.php';
+    $config = ORMSetup::createAttributeMetadataConfiguration(
+        paths: $settings['metadata_dirs'],
+        isDevMode: $settings['dev_mode'],
+        cache: new ArrayAdapter(),
+    );
+    $config->enableNativeLazyObjects(true);
+    $entityManager = new EntityManager(DriverManager::getConnection($settings['connection']), $config);
+    $summary = (new TimeEntrySummaryService($entityManager))->summarizeHoursByClient($dateFrom, $dateTo);
+
+    $lines = [];
+    $total = 0.0;
+    foreach ($summary as $row) {
+        $hours = (float) $row['total_hours'];
+        $total += $hours;
+        $lines[] = $row['client_name'] . ': ' . rtrim(rtrim(number_format($hours, 2, '.', ''), '0'), '.') . 'h';
+    }
+    if ($lines === []) {
+        $lines[] = '(no data)';
+    }
+    $lines[] = '合計: ' . rtrim(rtrim(number_format($total, 2, '.', ''), '0'), '.') . 'h';
+    $message = "Summary ({$dateFrom}-{$dateTo})\n```\n" . implode("\n", $lines) . "\n```";
+    $payload = json_encode(['text' => $message], JSON_THROW_ON_ERROR);
+
+    $context = stream_context_create(['http' => [
+        'method' => 'POST',
+        'header' => "Content-Type: application/json\r\n",
+        'content' => $payload,
+        'timeout' => 15,
+        'ignore_errors' => true,
+    ]]);
+    $response = @file_get_contents($webhookUrl, false, $context);
+    $statusLine = $http_response_header[0] ?? '';
+    if ($response === false || !preg_match('/^HTTP\/\S+ 2\d\d\b/', $statusLine)) {
+        throw new RuntimeException('Slack 通知に失敗しました。HTTP 応答: ' . ($statusLine ?: 'なし'));
+    }
+} catch (Throwable $exception) {
+    fwrite(STDERR, $exception->getMessage() . PHP_EOL);
+    exit(1);
+}
