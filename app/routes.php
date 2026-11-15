@@ -12,7 +12,8 @@ use Slim\App;
 
 return function (App $app): void {
     $app->get('/login', AuthController::class . ':showLogin');
-    $app->post('/login', AuthController::class . ':login');
+    $app->get('/auth/google', AuthController::class . ':startGoogleLogin');
+    $app->get('/auth/google/callback', AuthController::class . ':googleCallback');
     $app->post('/logout', AuthController::class . ':logout');
 
     $app->get('/', HomeController::class . ':index');

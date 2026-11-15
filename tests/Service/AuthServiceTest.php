@@ -13,48 +13,64 @@ use PHPUnit\Framework\TestCase;
 
 final class AuthServiceTest extends TestCase
 {
-    private const SESSION_KEY = 'kizami_test_user';
+    private const SESSION_KEY = 'kizami_google_sub';
 
     protected function setUp(): void
     {
         if (session_status() !== PHP_SESSION_ACTIVE) {
             session_start();
         }
-        unset($_SESSION[self::SESSION_KEY]);
+        unset($_SESSION[self::SESSION_KEY], $_SESSION['kizami_logout_pending']);
     }
 
     #[Test]
-    public function attemptLoginShouldSetSessionOnSuccess(): void
+    public function googleSubShouldSetSessionOnSuccess(): void
     {
         $service = $this->createService();
 
-        $success = $service->attemptLogin('admin', 'password');
+        $success = $service->loginWithGoogleSub('allowed-sub');
 
         self::assertTrue($success);
         self::assertTrue($service->isLoggedIn());
         $service->logout();
+        self::assertFalse($service->isLoggedIn());
+        self::assertTrue($service->isLogoutPending());
+        self::assertTrue($service->loginWithGoogleSub('allowed-sub'));
+        self::assertFalse($service->isLogoutPending());
     }
 
     #[Test]
-    public function attemptLoginShouldFailWithWrongPassword(): void
+    public function googleSubShouldRejectOtherAccount(): void
     {
         $service = $this->createService();
 
-        $success = $service->attemptLogin('admin', 'invalid');
+        $success = $service->loginWithGoogleSub('other-sub');
 
         self::assertFalse($success);
         self::assertFalse($service->isLoggedIn());
     }
 
     #[Test]
-    public function attemptLoginShouldFailWhenCredentialsAreNotConfigured(): void
+    public function googleSubShouldFailWhenAllowedSubIsNotConfigured(): void
     {
-        $service = $this->createService(adminUsername: '', adminPasswordHash: '');
+        $service = $this->createService(allowedSub: '');
 
-        $success = $service->attemptLogin('admin', 'password');
+        $success = $service->loginWithGoogleSub('allowed-sub');
 
         self::assertFalse($success);
         self::assertFalse($service->isLoggedIn());
+    }
+
+    #[Test]
+    public function legacyPasswordSessionShouldNotAuthenticate(): void
+    {
+        $_SESSION['kizami_user'] = 'admin';
+
+        try {
+            self::assertFalse($this->createService()->isLoggedIn());
+        } finally {
+            unset($_SESSION['kizami_user']);
+        }
     }
 
     #[Test]
@@ -83,13 +99,8 @@ final class AuthServiceTest extends TestCase
 
     private function createService(
         int $apiKeyCount = 0,
-        string $adminUsername = 'admin',
-        string $adminPasswordHash = '',
+        string $allowedSub = 'allowed-sub',
     ): AuthService {
-        if ($adminPasswordHash === '') {
-            $adminPasswordHash = password_hash('password', PASSWORD_DEFAULT);
-        }
-
         $query = $this->createMock(Query::class);
         $query->method('getSingleScalarResult')->willReturn($apiKeyCount);
 
@@ -109,8 +120,7 @@ final class AuthServiceTest extends TestCase
             [
                 'auth' => [
                     'session_key' => self::SESSION_KEY,
-                    'admin_username' => $adminUsername,
-                    'admin_password_hash' => $adminPasswordHash,
+                    'google_allowed_sub' => $allowedSub,
                 ],
             ]
         );

@@ -26,14 +26,11 @@ return function (ContainerBuilder $containerBuilder) use ($doctrineSettings): vo
                 'path' => __DIR__ . '/../var/log/app.log',
             ],
             'auth' => [
-                'session_key' => 'kizami_user',
-                'admin_username' => $_ENV['APP_ADMIN_USERNAME'] ?? null,
-                'admin_password_hash' => $_ENV['APP_ADMIN_PASSWORD_HASH'] ?? null,
-                'rate_limit' => [
-                    'max_attempts' => (int) ($_ENV['APP_AUTH_MAX_ATTEMPTS'] ?? 5),
-                    'window_seconds' => (int) ($_ENV['APP_AUTH_WINDOW_SECONDS'] ?? 300),
-                    'lock_seconds' => (int) ($_ENV['APP_AUTH_LOCK_SECONDS'] ?? 600),
-                ],
+                'session_key' => 'kizami_google_sub',
+                'google_client_id' => $_ENV['APP_GOOGLE_CLIENT_ID'] ?? '',
+                'google_client_secret' => $_ENV['APP_GOOGLE_CLIENT_SECRET'] ?? '',
+                'google_redirect_uri' => $_ENV['APP_GOOGLE_REDIRECT_URI'] ?? '',
+                'google_allowed_sub' => $_ENV['APP_GOOGLE_ALLOWED_SUB'] ?? '',
             ],
         ],
     ]);

@@ -28,19 +28,20 @@ docker compose run --rm app php bin/doctrine migrations:migrate -n
 
 5. アプリ確認
 
-- ブラウザで `http://localhost:8080` を開く（未ログイン時は `/login` へリダイレクト）
+- ブラウザで `http://localhost:8080` を開く（未ログイン時は Google ログインへリダイレクト）
 
 ## 認証
 
 - 画面: セッション認証
-  - `.env` の `APP_ADMIN_USERNAME` / `APP_ADMIN_PASSWORD_HASH` を利用
-  - `APP_ADMIN_PASSWORD_HASH` は `password_hash` で生成したハッシュ文字列
-    - 生成例: `php -r "echo password_hash('your-password', PASSWORD_DEFAULT) . PHP_EOL;"`
-  - いずれか未設定（空含む）の場合、ログイン不可
-  - ログイン試行制限（デフォルト: 5回失敗で10分ロック）
-    - `APP_AUTH_MAX_ATTEMPTS`
-    - `APP_AUTH_WINDOW_SECONDS`
-    - `APP_AUTH_LOCK_SECONDS`
+  - Google Auth Platform でウェブアプリケーション用 OAuth クライアントを作成する
+  - 承認済みリダイレクト URI にローカル用 `http://localhost:8080/auth/google/callback` を登録する
+  - 本番では実際の HTTPS URL の `/auth/google/callback` を登録する
+  - `.env` に `APP_GOOGLE_CLIENT_ID`、`APP_GOOGLE_CLIENT_SECRET`、`APP_GOOGLE_REDIRECT_URI`、`APP_GOOGLE_ALLOWED_SUB` を設定する
+  - 初回は `APP_GOOGLE_ALLOWED_SUB` を空にして Google ログインを試し、拒否画面に表示される本人の `sub` を設定する。設定後にアプリを再起動する
+  - クライアント ID、シークレット、リダイレクト URI が未設定の場合は認証を開始しない。許可する `sub` が未設定の場合は、Google 認証後もログインを拒否する
+  - 旧方式のセッションは引き継がれないため、切り替え後は Google ログインが必要
+  - 未ログイン時は `/auth/google` から Google の認証画面へ移動する。ログアウト後は `/` を開いても `/login` を表示し、再ログインはボタン操作で開始する
+  - 認証失敗時も `/login` を表示する
   - セッションCookie設定
     - `APP_SESSION_COOKIE_SECURE`
     - `APP_SESSION_COOKIE_SAMESITE`

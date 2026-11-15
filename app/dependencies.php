@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
+use App\Controller\AuthController;
 use App\Service\AuthService;
-use App\Service\LoginRateLimiter;
 use DI\ContainerBuilder;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\ORM\EntityManager;
@@ -58,15 +58,8 @@ return function (ContainerBuilder $containerBuilder): void {
             );
         },
 
-        LoginRateLimiter::class => function (ContainerInterface $c): LoginRateLimiter {
-            $rateLimit = $c->get('settings')['auth']['rate_limit'];
-
-            return new LoginRateLimiter(
-                __DIR__ . '/../var/cache/login_rate_limiter.json',
-                (int) $rateLimit['max_attempts'],
-                (int) $rateLimit['window_seconds'],
-                (int) $rateLimit['lock_seconds'],
-            );
+        AuthController::class => function (ContainerInterface $c): AuthController {
+            return new AuthController($c->get(AuthService::class), $c->get('settings'));
         },
 
         LoggerInterface::class => function (ContainerInterface $c): LoggerInterface {

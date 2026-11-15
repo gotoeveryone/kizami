@@ -34,12 +34,14 @@ final class AuthMiddleware implements MiddlewareInterface
             return $handler->handle($request);
         }
 
-        if ($path === '/login' || $path === '/login/') {
+        if (in_array($path, ['/login', '/auth/google', '/auth/google/callback'], true)) {
             return $handler->handle($request);
         }
 
         if (!$this->authService->isLoggedIn()) {
-            return (new SlimResponse(302))->withHeader('Location', '/login');
+            $location = $this->authService->isLogoutPending() ? '/login' : '/auth/google';
+
+            return (new SlimResponse(302))->withHeader('Location', $location);
         }
 
         return $handler->handle($request);
