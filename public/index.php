@@ -26,16 +26,12 @@ $sessionSecure = filter_var(
     $_ENV['APP_SESSION_COOKIE_SECURE'] ?? (($_ENV['APP_ENV'] ?? 'production') === 'production' || $isHttpsRequest),
     FILTER_VALIDATE_BOOL
 );
-$sessionSameSite = (string) ($_ENV['APP_SESSION_COOKIE_SAMESITE'] ?? 'Lax');
-if (!in_array($sessionSameSite, ['Lax', 'Strict', 'None'], true)) {
-    $sessionSameSite = 'Lax';
-}
 session_set_cookie_params([
     'lifetime' => 0,
     'path' => '/',
     'secure' => $sessionSecure,
     'httponly' => true,
-    'samesite' => $sessionSameSite,
+    'samesite' => 'Lax',
 ]);
 
 if (session_status() !== PHP_SESSION_ACTIVE) {

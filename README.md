@@ -44,7 +44,7 @@ docker compose run --rm app php bin/doctrine migrations:migrate -n
   - 認証失敗時も `/login` を表示する
   - セッションCookie設定
     - `APP_SESSION_COOKIE_SECURE`
-    - `APP_SESSION_COOKIE_SAMESITE`
+    - SameSite は Google のコールバックでもセッションを保持できるよう `Lax` に固定
 - API: API キー認証
   - `Authorization: Bearer <API_KEY>` ヘッダを利用
   - API キーは `api_keys` テーブルでハッシュ（SHA-256）管理
